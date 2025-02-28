@@ -1,4 +1,4 @@
-%% Select
+%% Select a dataset
 file = '191209_13_44_12';
 quickAnalysis;
 %% fig.1d SpatialPosition3d
@@ -28,16 +28,16 @@ set(gca, 'LineWidth', 1, 'FontSize', 15, ...
     'YMinorTick'  , 'off'   , ...
     'ZMinorTick'  , 'off'  )
 
-mfbFolderPath = 'X:\MFB';
-currentDate = datestr(now, 'yyyy-mm-dd');
-folderPath = fullfile(mfbFolderPath, 'Figures', 'Figure1', currentDate);
+mfpath = 'X:\MFB';
+Date = datestr(now, 'yyyy-mm-dd');
+folderPath = fullfile(mfpath, 'Figures', 'Figure1', Date);
 if ~exist(folderPath, 'dir')
     mkdir(folderPath);
 end
-fileName = ['SpatialPosition3d_' file];
-fullFilePath = fullfile(folderPath, fileName);
-print(fullFilePath, '-dpng', '-r300');
 
+fileName = ['SpatialPosition3d_' file];
+fullFilePathPDF = fullfile(folderPath, [fileName, '.pdf']);
+exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
 
 
@@ -138,16 +138,16 @@ end
 
 axes(gca);
 
-mfbFolderPath = 'X:\MFB';
-currentDate = datestr(now, 'yyyy-mm-dd');
-folderPath = fullfile(mfbFolderPath, 'Figures', 'Figure1', currentDate);
+mfpath = 'X:\MFB';
+Date = datestr(now, 'yyyy-mm-dd');
+folderPath = fullfile(mfpath, 'Figures', 'Figure1', Date);
 if ~exist(folderPath, 'dir')
     mkdir(folderPath);
 end
-fileName = ['subgroups_' file '_corr.png'];
-fullFilePath = fullfile(folderPath, fileName);
-% save
-print(fullFilePath, '-dpng', '-r300');
+
+fileName = ['subgroups_' file '_corr'];
+fullFilePathPDF = fullfile(folderPath, [fileName, '.pdf']);
+exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
 %% - fig.1e sample df/f
 plot_sampledff = 1;
@@ -223,36 +223,34 @@ if plot_sampledff
     axis tight;
     
     fileName = ['sample_traces_' file];
-    fullFilePath = fullfile(folderPath, fileName);
-    print(fullFilePath, '-dpng', '-r300');
+    fullFilePathPDF = fullfile(folderPath, [fileName, '.pdf']);
+    exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
 end
 
 
 %% fig.1g
 
-plot_1g=0;
+plot_1g=1;
 
-if plot_1g==1g
+if plot_1g==1
     folder_names = {
           '171212_16_19_37';
           '191209_14_18_13';
           '200130_13_36_14 FunctAcq';
           '191018_13_39_41';
-        }
+        };
     
     all_group_ids={};
     NN_dist = [];
     
-    for ijk=1:length(folder_names)
+    for ijk =1:length(folder_names)
     
         file = folder_names{ijk};
         quickAnalysis;
         dt = 10;
         Nmf0 = size(dff0_r,1);
         Nmf1 = length(group_ids);
-        
-        groups_2 = find(cellfun(@length, group_ids)==2);
         all_group_ids = [all_group_ids, group_ids];
         
         dd_all = pdist2(xyz(:,:), xyz(:,:));
@@ -279,10 +277,10 @@ if plot_1g==1g
     figure(Position = [100 100 300 350]);
     histogram(lengths, 'BinEdges', 0.5:max(lengths) + 0.5, 'FaceColor', [1, 0, 0],'EdgeColor', 'black', 'LineWidth', 1);
     xlabel('MFB number per axon');
-    ylabel('Number');
+    ylabel('Count');
     ylim([0 1000])
     set(gca, 'YTick', [0 10 100 1000],'Yscale','log');
-    xticks(1:3:max(lengths));
+    xticks([1,6,11]);
     
     set(gca, 'LineWidth', 1, 'FontSize', 15, ...
         'FontName'   , 'Helvetica', ...
@@ -294,14 +292,15 @@ if plot_1g==1g
     
     % print
     fileName = ['MFB per axon'];
-    fullFilePath = fullfile(folderPath, fileName);
-    print(fullFilePath, '-dpng', '-r300');
+    fullFilePathPDF = fullfile(folderPath, [fileName, '.pdf']);
+    exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
     
     figure;
     histogram(NN_dist, 'BinWidth', 10, 'FaceColor', [1, 0, 0], 'EdgeColor', 'black', 'LineWidth', 1); % RGB color for red
     xlabel('Distance (μm)');
     ylabel('Number');
     xlim([0, ceil(max(NN_dist)/10)*10]);
+    yticks([0, 50, 100])
     
     fig = gcf;
     fig.Units = 'pixels';
@@ -331,13 +330,13 @@ if plot_1g==1g
     plot([r1, r2], [maxdist*0.992, maxdist*0.992], 'k', 'LineWidth', 4);
     
     fileName = ['histogram_MFA_distance_all'];
-    fullFilePath = fullfile(folderPath, fileName);
-    print(fullFilePath, '-dpng', '-r300');
+    fullFilePathPDF = fullfile(folderPath, [fileName, '.pdf']);
+    exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
 end
 
 
-%% fig.1h plot All MF Axons
+%% fig.1h plot heatmap
 t_r = (1:length(spd_r)) * dt;
 tb = 10000/dt; 
 t_end = t_r(end);
@@ -350,7 +349,6 @@ sbplt1 = [1:9];
 sbplt2 = [10];
 sbplt3 = [11];
 sbp_no = 11;    
-
 
 figure('Position', [100, 20, 570, 850]);
 
@@ -367,7 +365,7 @@ imagesc(zz(bsh, tb:end), [v1, v2]);
 
 for j = 1:Ntr
     tpuff = ((j-1)*T(end)+5e3)/dt;
-    yTriTop = size(dff_r,1)+3; %
+    yTriTop = size(dff_r,1)+3;
     plot(tpuff, yTriTop, 'v', 'MarkerSize', 6, 'MarkerEdgeColor', [0.7,0.7,0.7], 'MarkerFaceColor', [0.7,0.7,0.7]);
 end
 
@@ -403,9 +401,9 @@ annotation('line', [0.8 0.85], [0.12 0.12], 'LineWidth', 3);
 annotation('textbox', [0.79, 0.08, 0.09, 0.04], 'String', '20 s', ...
            'EdgeColor', 'none', 'FontSize', 12);
 
-fileName = ['heatMap_' file '.png'];
-fullFilePath = fullfile(folderPath, fileName);
-print(fullFilePath, '-dpng', '-r300');
+fileName = ['heatMap_' file];
+fullFilePathPDF = fullfile(folderPath, [fileName, '.pdf']);
+exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
 
 

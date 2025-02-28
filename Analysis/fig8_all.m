@@ -318,11 +318,16 @@ hold on;
 x_pos = 1:length(mean_values);
 errorbar(x_pos, mean_values * 100, sem_values * 100, 'k.', 'LineWidth', 1.5);
 
+% for i = 1:length(theoretical_values)
+%     y_value = theoretical_values(i);
+%     x_coords = [i - 0.2, i + 0.2, i];
+%     y_coords = [y_value, y_value, y_value - 0.4];
+%     fill(x_coords, y_coords, [255, 178, 102]/255, 'EdgeColor', 'none');
+% end
 for i = 1:length(theoretical_values)
     y_value = theoretical_values(i);
-    x_coords = [i - 0.2, i + 0.2, i];
-    y_coords = [y_value, y_value, y_value - 0.4];
-    fill(x_coords, y_coords, [255, 178, 102]/255, 'EdgeColor', 'none');
+    x_pos = i;
+    scatter(x_pos, y_value, 20, [255, 178, 102]/255, 'filled');
 end
 
 ylabel('Fraction (%)');
@@ -337,10 +342,9 @@ if ~exist(folderPath, 'dir')
     mkdir(folderPath);
 end
 
-fileName = ['GC_INPUT.png'];
-fullFilePath = fullfile(folderPath, fileName);
-% save
-print(fullFilePath, '-dpng', '-r300');
+fileName = ['GC_INPUT'];
+fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
 %% fraction - output
 
@@ -387,6 +391,14 @@ ylim([0, 100]);
 xlabel('Granule cell responses');
 ylabel('Fraction (%)');
 
+ax = gca;
+shiftAmount = 0.1;
+
+for j = 1:length(b)
+    b(j).XData = b(j).XData + shiftAmount;
+end
+
+
 groupCenters = b(1).XData;
 barWidth = b(1).BarWidth / numBars;
 
@@ -409,17 +421,16 @@ ylim([-6, 100]);
 yticks([0 25 50 75 100])
 
 
+
 mfbFolderPath = 'X:\MFB';
 currentDate = datestr(now, 'yyyy-mm-dd');
 folderPath = fullfile(mfbFolderPath, 'Figures', 'Figure8', currentDate);
 if ~exist(folderPath, 'dir')
     mkdir(folderPath);
 end
-fileName = ['GC_integration_output.png'];
-fullFilePath = fullfile(folderPath, fileName);
-% save
-print(fullFilePath, '-dpng', '-r300');
-
+fileName = ['GC_integration_output'];
+fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
 %%
 figure('Position',[100,100,350,300])
@@ -466,10 +477,9 @@ if ~exist(folderPath, 'dir')
     mkdir(folderPath);
 end
 
-fileName = ['GC_dist_dist.png'];
-fullFilePath = fullfile(folderPath, fileName);
-% save
-print(fullFilePath, '-dpng', '-r300');
+fileName = ['GC_dist_dist'];
+fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
 %%
 figure('Position',[100,100,350,300])
@@ -521,4 +531,55 @@ fullFilePath = fullfile(folderPath, fileName);
 print(fullFilePath, '-dpng', '-r300');
 
 
-
+% %% fig 8 new panel
+% thresholds = 0:3;
+% 
+% inactive_frac = zeros(size(thresholds));
+% inactive_count = zeros(size(thresholds));
+% 
+% for t = thresholds
+%     filePath = fullfile('X:\MFB\MFB_AH_2023\Correlation_data', ['results_itr_th' num2str(t) '.mat']);
+%     load(filePath); 
+% 
+%     temp_inactive = [];
+% 
+%     for fi = 1:length(results_itr)
+%         nItr = length(results_itr(fi).num_PM);  
+%         for ite = 1:nItr
+%             switch t
+%                 case 0
+%                     inc = results_itr(fi).SSSS(ite) + results_itr(fi).PPNN(ite) + results_itr(fi).PNSS(ite);
+%                 case 1
+%                     inc = results_itr(fi).SSSS(ite) + results_itr(fi).PPNN(ite) + results_itr(fi).PNSS(ite) + ...
+%                           results_itr(fi).PNNS(ite) + results_itr(fi).NSSS(ite) + results_itr(fi).PPNS(ite) + results_itr(fi).PSSS(ite);
+%                 case 2
+%                     inc = results_itr(fi).SSSS(ite) + results_itr(fi).PPNN(ite) + results_itr(fi).PNSS(ite) + ...
+%                           results_itr(fi).PNNS(ite) + results_itr(fi).NSSS(ite) + results_itr(fi).PPNS(ite) + results_itr(fi).PSSS(ite) + ...
+%                           results_itr(fi).PPPN(ite) + results_itr(fi).PPSS(ite) + results_itr(fi).PNNN(ite) + results_itr(fi).NNSS(ite);
+%                 case 3
+%                     inc = results_itr(fi).SSSS(ite) + results_itr(fi).PPNN(ite) + results_itr(fi).PNSS(ite) + ...
+%                           results_itr(fi).PNNS(ite) + results_itr(fi).NSSS(ite) + results_itr(fi).PPNS(ite) + results_itr(fi).PSSS(ite) + ...
+%                           results_itr(fi).PPPN(ite) + results_itr(fi).PPSS(ite) + results_itr(fi).PNNN(ite) + results_itr(fi).NNSS(ite) + ...
+%                           results_itr(fi).NNNS(ite) + results_itr(fi).PPPS(ite);
+%             end
+%             temp_inactive = [temp_inactive, inc];
+%         end
+%     end
+%     
+%     avg_frac = mean(temp_inactive);
+%     inactive_frac(t+1) = avg_frac;
+%     inactive_count(t+1) = avg_frac * N_GC;
+% end
+% 
+% 
+% figure('Position',[100,100,300,400]);
+% b = bar(thresholds, inactive_frac*100,0.7, 'FaceColor', [0.5 0.5 0.5]);
+% xlabel('Threshold =','FontSize',12);
+% ylabel('Inactive Granule Cells (%)','FontSize',12);
+% ylim([0,100]);
+% set(gca, 'XTick', thresholds, 'FontSize',12);
+% box off
+% 
+% fileName = ['GC_inactive.png'];
+% fullFilePath = fullfile(folderPath, fileName);
+% print(fullFilePath, '-dpng', '-r300');

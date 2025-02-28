@@ -52,26 +52,26 @@ folder_names = {
    '200130_14_29_30 FunctAcq';
     };
 
-% for no puff
-folder_names = {
-   %'171212_16_19_37';
-   %'191018_13_39_41';
-   %'191018_13_56_55';
-   '191018_14_30_00';
-   %'191018_14_11_33';
-   %'191209_13_44_12';
-   %'191209_14_04_14';
-   '191209_14_32_39';
-   '191209_15_01_22';
-   '191209_14_18_13';
-   '191209_14_46_58';
-   %'200130_13_21_13 FunctAcq';
-   '200130_13_36_14 FunctAcq';
-   '200130_13_49_09 FunctAcq';
-   %'200130_14_02_12 FunctAcq';
-   '200130_14_15_24 FunctAcq';
-   %'200130_14_29_30 FunctAcq';
-    };
+% % for no puff
+% folder_names = {
+%    %'171212_16_19_37';
+%    %'191018_13_39_41';
+%    %'191018_13_56_55';
+%    '191018_14_30_00';
+%    %'191018_14_11_33';
+%    %'191209_13_44_12';
+%    %'191209_14_04_14';
+%    '191209_14_32_39';
+%    '191209_15_01_22';
+%    '191209_14_18_13';
+%    '191209_14_46_58';
+%    %'200130_13_21_13 FunctAcq';
+%    '200130_13_36_14 FunctAcq';
+%    '200130_13_49_09 FunctAcq';
+%    %'200130_14_02_12 FunctAcq';
+%    '200130_14_15_24 FunctAcq';
+%    %'200130_14_29_30 FunctAcq';
+%     };
 
 varexp=cell(length(folder_names),1);
 numcomp=zeros(length(folder_names),1);
@@ -94,7 +94,7 @@ figure;
 for dataset_i = 1:length(folder_names)
 
     file=char(folder_names(dataset_i));
-    quickAnalysis_Yizhou;
+    quickAnalysis;
 
     mice = getMice(folder_names{dataset_i}, Jeremy_names, Bernie_names, Bill_names, Nigel_names);
     mice_colors_all{dataset_i} = mice_colors(mice);
@@ -164,9 +164,8 @@ if ~exist(folderPath, 'dir')
 end
 
 fileName = ['PCA_cvev'];
-fullFilePath = fullfile(folderPath, fileName);
-print(fullFilePath, '-dpng', '-r300');
-
+fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 save("X:\MFB\MFB_AH_2023\varexp.mat", 'varexp','varexp_all','varmax','dimmax');
 
 
@@ -192,73 +191,122 @@ folder_names = {
 
 sig_level = 2;
 all_loadings = [];
+all_loadings_pm = [];
+all_loadings_nm = [];
+all_loadings_ns = [];
 eigen_20 = [];
-
 
 for dataset_ix = 1:length(folder_names)
     file = char(folder_names(dataset_ix));
     quickAnalysis;
 
-    zz = dff0_rz;
+    zz = dff_rz;
     nan_times = any(isnan(zz), 1);  
     zz = zz(:, ~nan_times);
     L_state = L_state(~nan_times);
     dff_rz = dff_rz(:, ~nan_times);
 
-    [coeff, score, latent, tsquared, explained] = pca(zz);
+    if ~all(L_state==0)
+        [cc_wL, zc_wL] = bootstrap_cc(dff_rz', L_state', 100, 200);
+    else
+        continue
+    end
+
+    pm = zc_wL > sig_level;
+    [~, pm_ids] = find(pm == 1);
+    
+    nm = zc_wL < -sig_level;
+    [~, nm_ids] = find(nm == 1);
+
+    ns = abs(zc_wL) < sig_level;
+    [~, ns_ids] = find(ns == 1);
+
+    [coeff, score, latent, tsquared, explained] = pca(zz(:,L_state==1)');
 
     if size(coeff, 2) < 3
         continue;
+    else
+        total_variance = sum(latent);
+        ne = latent / total_variance;
+        eigen_20 = [eigen_20, ne(1:20)];
+        loadings = coeff(:, 1:3) .* sqrt(latent(1:3))';
+        all_loadings = [loadings; all_loadings];
+
+        if ~isempty(pm_ids)
+            all_loadings_pm = [all_loadings_pm; loadings(pm_ids, :)];
+        end
+
+        if ~isempty(nm_ids)
+            all_loadings_nm = [all_loadings_nm; loadings(nm_ids, :)];
+        end
     end
-
-    total_variance = sum(latent);
-    ne = latent / total_variance;
-    eigen_20 = [eigen_20, ne(1:20)];
-
-    loadings = coeff(:, 1:3) .* sqrt(latent(1:3))';
-    all_loadings = [loadings;all_loadings];
 end
 
-
-figure(Position=[200 100 880 300]); hold on;
+%%
+figure('Position',[200 100 880 300]); hold on;
 for ix = 1:size(eigen_20,2)
     face_color = dataset_colors{ix};    
     plot(eigen_20(:,ix),'color',face_color,'linewidth',2)
-    
-    mean_eigen = nanmean(eigen_20,2);
-    sem_mean_eigen = nanstd(eigen_20,0,2) / sqrt(size(eigen_20,2));
-    errorbar(1:20, mean_eigen, sem_mean_eigen, 'k', 'linestyle', 'none', 'LineWidth', 2);
-    bar(1:20, mean_eigen, 'FaceAlpha',0, 'LineWidth',2)
-    xlabel('Num. components')
-    ylabel('Normalized eigenvalue')
-    set(gca, 'FontSize', 15, 'XTick', 1:20)
-    ylim([0, .2])
-    yticks([0 0.1 0.2])
 end
-
+mean_eigen = nanmean(eigen_20,2);
+sem_mean_eigen = nanstd(eigen_20,0,2) / sqrt(size(eigen_20,2));
+errorbar(1:20, mean_eigen, sem_mean_eigen, 'k', 'linestyle', 'none', 'LineWidth', 2);
+bar(1:20, mean_eigen, 'FaceAlpha',0, 'LineWidth',2)
+xlabel('Num. components')
+ylabel('Normalized eigenvalue')
+set(gca, 'FontSize', 15, 'XTick', 1:20)
+ylim([0, .4])
+yticks([0 0.2 0.4])
 
 fileName = ['PCA_normalised_eigenvalue'];
-fullFilePath = fullfile(folderPath, fileName);
-print(fullFilePath, '-dpng', '-r300');
+fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
+% loadings
+group_names = {'All', 'PM', 'NM', 'NS'};
+colors = {
+    [0.8500, 0.3250, 0.98],
+    [1, 0, 0],           
+    [0, 0, 1],            
+    [0.5, 0.5, 0.5]         
+};
 
-figure;
-% plot loading
-for i = 1:3
-    subplot(3, 1, i);
-    histogram(all_loadings(:, i),'Binwidth',0.05,'Normalization', 'probability', 'FaceColor', 'b');
-    xlabel(sprintf('PC%d', i));
-    ylabel('Prob.');
-    box("off")
-    set(gca, 'FontSize', 15)
-    set(gcf, 'Position', [100, 100, 250, 600]);
-    xlim([-1,1])
+figure('Position', [100, 100, 1000, 650]);
+for pc = 1:3
+    data_all = all_loadings(:, pc);
+    data_pm  = all_loadings_pm(:, pc);
+    data_nm  = all_loadings_nm(:, pc);
+
+    for grp = 1:3
+        subplot(3, 3, (pc-1)*3 + grp);
+        switch grp
+            case 1
+                histogram(data_all, 'BinWidth', 0.05, 'Normalization', 'probability', ...
+                          'FaceColor', colors{1});
+            case 2
+                histogram(data_pm, 'BinWidth', 0.05, 'Normalization', 'probability', ...
+                          'FaceColor', colors{2});
+            case 3
+                histogram(data_nm, 'BinWidth', 0.05, 'Normalization', 'probability', ...
+                          'FaceColor', colors{3});
+        end
+        xlabel(sprintf('PC%d', pc));
+        ylabel('Prob.');
+        title(sprintf('%s', group_names{grp}));
+        box off
+        set(gca, 'FontSize', 15)
+        xlim([-1.5,1.5])
+        ylim([0 0.3])
+        yticks([0 0.15 0.3])
+    end
 end
 
+fileName = ['PCA_loadings_all_pm_nm'];
+fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
-fileName = ['PCA_loadings'];
-fullFilePath = fullfile(folderPath, fileName);
-print(fullFilePath, '-dpng', '-r300');
+
+
 
 
 %% 4d
@@ -307,11 +355,8 @@ if ~exist(folderPath, 'dir')
 end
 
 fileName = ['PCA_low_bound'];
-fullFilePath = fullfile(folderPath, fileName);
-print(fullFilePath, '-dpng', '-r300');
+fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
-%% 4e
-
-subpopulation_plot
 
 

@@ -1,5 +1,4 @@
-
-file='171212_16_19_37';
+file ='171212_16_19_37';
 quickAnalysis
 
 mfbFolderPath = 'X:\MFB';
@@ -9,15 +8,14 @@ if ~exist(folderPath, 'dir')
     mkdir(folderPath);
 end
 
-
 % plot CC
 cc_MF_all = corr(dff_rz', 'rows', 'complete');
 cc_MF_stat = corr(dff_rz(:,L_state==0)', 'rows', 'complete');
 cc_MF_run = corr(dff_rz(:,L_state==1)', 'rows', 'complete');
 
-cc_MF_all(eye(length(cc_MF_all))==1)=0;
-cc_MF_stat(eye(length(cc_MF_stat))==1)=0;
-cc_MF_run(eye(length(cc_MF_run))==1)=0;
+% cc_MF_all(eye(length(cc_MF_all))==1)=0;
+% cc_MF_stat(eye(length(cc_MF_stat))==1)=0;
+% cc_MF_run(eye(length(cc_MF_run))==1)=0;
 
 for i = 1:3
     if i == 1
@@ -47,13 +45,12 @@ for i = 1:3
     yticks([1,Nmf])
     xlabel('MFA#')
     ylabel('MFA#')
-    set(gca, 'LineWidth', .1, 'FontSize', 20, 'TickDir', 'out')
+    set(gca, 'LineWidth', .1, 'FontSize', 17, 'TickDir', 'out')
     
     % print
-    fileName = ['cc_matrix_' suffix '.png'];
-    fullFilePath = fullfile(folderPath, fileName);
-    % save
-    print(fullFilePath, '-dpng', '-r300');
+    fileName = ['cc_matrix_' suffix];
+    fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+    exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 end
 
 %% - cc distribution
@@ -64,7 +61,6 @@ cc_MF_run(eye(length(cc_MF_run))==1)=nan;
 figure('Position',[100,100,300,250])
 subplot(111)
 hold on
-%bins = -1:.01:1;
 
 [y,x] = histcounts(cc_MF_all, 'Normalization','count');
 dx = diff(x(1:2));
@@ -79,8 +75,8 @@ xlim([-1 1]);
 
 % print
 fileName = ['cc_dist_allMF.png'];
-fullFilePath = fullfile(folderPath, fileName);
-print(fullFilePath, '-dpng', '-r300');
+fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
 figure('Position',[100,100,300,250])
 subplot(111)
@@ -103,12 +99,13 @@ legend boxoff
 
 xlabel('Pairwise corr.')
 ylabel('Prob.')
-set(gca, 'LineWidth', 1, 'FontSize', 20, 'TickDir', 'out')
+set(gca, 'LineWidth', 1, 'FontSize', 17, 'TickDir', 'out')
 
 % print
 fileName = ['cc_dist_runVstat_' file];
-fullFilePath = fullfile(folderPath, fileName);
-print(fullFilePath, '-dpng', '-r300');
+fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
+
 
 %% -- 2a. Heat Map of Activity
 ccs = corr(spd_r', dff_r', 'rows', 'complete');
@@ -239,8 +236,8 @@ if plot_heatMap
     set(gca, 'Position', pos, 'LineWidth', 1, 'FontSize', 15, 'XColor', 'none', 'TickDir', 'out');
 
     fileName = ['HeatMap__', suffix, '.png'];
-    fullFilePath = fullfile(folderPath, fileName);
-    print(fullFilePath, '-dpng', '-r300');
+    fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+    exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 end
 
 %% 2b.traces
@@ -312,9 +309,7 @@ if plot_sampledff_separate
             
              trace = plot(fastsmooth(z2,500,3,1), 'color', cl, 'LineWidth',4);
 
-            if ii == 2
-                ylabel('zscore', 'FontSize',30);
-            end
+  
             
             xlim([0,380*1e3/dt]);
             ylim([0.9*ymn 1.6*ymx])
@@ -325,7 +320,7 @@ if plot_sampledff_separate
 
         end
         
-        set(gca, 'LineWidth', 1, 'FontSize', 15, ...
+        set(gca, 'LineWidth', 1, 'FontSize', 18, ...
             'FontName'   , 'Helvetica', ...
             'Box'         , 'off'     , ...
             'YTickLabel', [], ...
@@ -336,13 +331,13 @@ if plot_sampledff_separate
 
     if ijk ==3
 
-        x0 = max(xlim) - 250; 
+        x0 = max(xlim) - 5000; 
         y0 = min(z2)+1 ; 
         plot(x0-[0,2000], [y0,y0], 'k-', 'LineWidth',3);
-        text(x0+10, y0-0.05*range(z2), '20 s', 'FontSize', 15, 'HorizontalAlignment', 'center'); 
+        text(x0+10, y0-0.05*range(z2), '20 s', 'FontSize', 21, 'HorizontalAlignment', 'center'); 
 
         plot([x0,x0], [y0,y0+1],'k-', 'LineWidth',3)
-        text(x0+400,y0+1.5,'1 \DeltaF/F', 'FontSize',15)
+        text(x0+400,y0+1.5,'1 \DeltaF/F', 'FontSize',21)
 
         set(h_group_AS,'visible','off')
         set(h_group_QW,'visible','off')
@@ -351,8 +346,8 @@ if plot_sampledff_separate
       
     % print
     fileName = ['sample_traces_separate__' suffix '.png'];
-    fullFilePath = fullfile(folderPath, fileName);
-    print(fullFilePath, '-dpng', '-r300');
+    fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+    exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
   
     end
 
@@ -362,7 +357,7 @@ run_r_all = run_r;
 
 filePath = fullfile('X:\MFB\MFB_AH_2023\Correlation_data', ['corr_', folder_name, '.mat']);
 save(filePath, 'cc_MF_all', 'cc_MF_stat', 'cc_MF_run', 'folder_name','dff_r', ...
-    'L_state','MI_whisker_r','dff_rz','MI_wheel_r','spd_r','run_r_all','Nmf','whl_r','whl_rs','xyz');
+    'L_state','A_state','Q_state','MI_whisker_r','dff_rz','MI_wheel_r','spd_r','run_r_all','Nmf','whl_r','whl_rs','xyz');
 
 %% pie
 
@@ -394,8 +389,8 @@ save(filePath, 'cc_MF_all', 'cc_MF_stat', 'cc_MF_run', 'folder_name','dff_r', ..
     set(gca, 'Position', [0.13, 0.15, 0.6, 0.6])
 
     fileName = ['modLoc_' file '__pie.png'];
-    fullFilePath = fullfile(folderPath, fileName);
-    print(fullFilePath, '-dpng', '-r300');
+    fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+    exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
     
     h = figure('Position',[100,100,300,250]); hold on;
     sig_level=2;
@@ -416,12 +411,12 @@ save(filePath, 'cc_MF_all', 'cc_MF_stat', 'cc_MF_run', 'folder_name','dff_r', ..
     xlabel('Corr. with AS')
     ylabel('# MFAs')
 
-    set(gca, 'LineWidth', 1, 'FontSize', 20)
+    set(gca, 'LineWidth', 1, 'FontSize', 17)
 
     % print
     fileName = ['Bootstrapped Corr_' file];
-    fullFilePath = fullfile(folderPath, fileName);
-    print(fullFilePath, '-dpng', '-r300');
+    fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+    exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
 
 %% second half
@@ -451,7 +446,7 @@ legend boxoff
 
 xlabel('Pairwise corr.')
 ylabel('Probability')
-set(gca, 'LineWidth', 1, 'FontSize', 20, 'TickDir', 'out','box','off')
+set(gca, 'LineWidth', 1, 'FontSize', 22, 'TickDir', 'out','box','off')
 mfbFolderPath = 'X:\MFB';
 currentDate = datestr(now, 'yyyy-mm-dd');
 folderPath = fullfile(mfbFolderPath, 'Figures', 'Figure2', currentDate);
@@ -460,8 +455,8 @@ if ~exist(folderPath, 'dir')
 end
 
 fileName = ['Pairwise corr_probability'];
-fullFilePath = fullfile(folderPath, fileName);
-print(fullFilePath, '-dpng', '-r300');
+fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
 % -
 figure('Position',[100,100,280,230])
@@ -488,8 +483,8 @@ set(gca, 'LineWidth', 1, 'FontSize', 22, 'TickDir', 'out')
 
 % print
 fileName = ['Pairwise corr_cdf'];
-fullFilePath = fullfile(folderPath, fileName);
-print(fullFilePath, '-dpng', '-r300');
+fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
 end
 
@@ -523,8 +518,8 @@ set(gca, 'LineWidth', 1, 'FontSize', 15)
 
 % print
 fileName = ['Bootstrapped Corr'];
-fullFilePath = fullfile(folderPath, fileName);
-print(fullFilePath, '-dpng', '-r300');
+fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
 
 %% -('Corr. with AS') 
@@ -542,8 +537,8 @@ xlim([-1,1]);
 set(gca, 'LineWidth', 1, 'FontSize', 20)
 
 fileName = ['Corr with Loco.png'];
-fullFilePath = fullfile(folderPath, fileName);
-print(fullFilePath, '-dpng', '-r300');
+fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
 
 %% fig.2g pie
@@ -562,7 +557,7 @@ h = pie([nm_counts, ns_counts, pm_counts], {'NM', 'NSM', 'PM'});
 
 colormap([cl_nm;cl_ns;cl_pm]);
 
-set(findobj(h,'type','text'),'fontsize',18);
+set(findobj(h,'type','text'),'fontsize',24);
 
 percentages = [nm_counts, ns_counts, pm_counts] / total_counts * 100;
 textObjects = findobj(h,'Type','text');
@@ -580,15 +575,15 @@ end
 
 axis image;
 
-ht = title({'Modulation (QW/AS)'}, 'fontsize', 22, 'fontweight', 'normal');
+ht = title({'Modulation (QW/AS)'}, 'fontsize', 26, 'fontweight', 'normal');
 titlePos = get(ht, 'Position');
 newTitlePos = titlePos + [0, 0.3, 0]; %
 set(ht, 'Position', newTitlePos);
 
 set(gca, 'Position', [0.13, 0.15, 0.6, 0.6]);
 
-fileName = ['modLoc_allMice__pie.png'];
-fullFilePath = fullfile(folderPath, fileName);
-print(fullFilePath, '-dpng', '-r300');
+fileName = ['modLoc_allMice__pie'];
+fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
 

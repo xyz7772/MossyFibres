@@ -85,8 +85,6 @@ save([char(basedir),'/Processed/dimensionality_N',num2str(N_sub)],'dimmax','vare
 end
 
 
-
-
 %% fig 4e
 
 valid_dataset = [1,2,4,6,8:16];
@@ -101,8 +99,6 @@ c_nigel=[1,.4,.4];
 mice_colors = containers.Map({'Bernie', 'Bill', 'Jeremy', 'Nigel'}, ...
                                  {c_bernie, c_bill, c_jeremy, c_nigel});
 
-
-
 N_sub = [75:25:175];
 basedir="X:\MFB";
 slope = zeros(size(N_sub));
@@ -113,8 +109,8 @@ for k = 1:length(N_sub)
     varmax = nan(N_file,1);
     dimmax = nan(N_file,1);
     slope_values = nan(N_file,1);
-    for dataset_i = 8
-        load(fullfile(basedir, 'Processed/', ['dimensionality_N',num2str(N_sub(k))]))
+    for dataset_i = valid_dataset
+        load(fullfile(basedir, 'Processed/MFA subpopulation dim/', ['dimensionality_N',num2str(N_sub(k))]))
         if ~isempty(varexp{dataset_i})
             [varmax(dataset_i),dimmax(dataset_i)] = max(nanmean(varexp{dataset_i},1));
         end
@@ -131,7 +127,7 @@ figure('Position', [30 20 500 250])
 bar(N_sub', N_sub./slope, 'FaceColor', [.6, .6, .6], 'EdgeColor', 'w', 'LineWidth', 1)
 hold on;
 errorbar(N_sub', N_sub./slope, sem, 'LineStyle', 'none', 'Color', 'k', 'LineWidth', 1);
-set(gca, 'FontSize', 15, 'Box', 'off')
+set(gca, 'FontSize', 13, 'Box', 'off')
 xlim([min(N_sub)-10, max(N_sub)+10])
 
 xlabel('Number of MFA')
@@ -145,10 +141,10 @@ if ~exist(folderPath, 'dir')
     mkdir(folderPath);
 end
 
-fileName = ['subgroups_' char("errorbar") '_corr.png'];
-fullFilePath = fullfile(folderPath, fileName);
-% save
-print(fullFilePath, '-dpng', '-r300');
+fileName = ['subgroups_' char("errorbar") '_corr'];
+fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
+
 
 
 %% color set
@@ -260,8 +256,6 @@ folder_names = {
    '200130_14_29_30 FunctAcq';
     };
 
-
-
 D_eff_all=[];
 
 for file_i  =1:length(folder_names)
@@ -283,6 +277,50 @@ disp(['Effective Dimensionality (D_eff): ', num2str(D_eff)]);
 D_eff_all = [D_eff_all D_eff];
 end
 
+%% Effective dimensionality with smoothing
+% Select
+folder_names = {
+   '171212_16_19_37';
+   '191018_13_39_41';
+   %'191018_13_56_55'; % only run at the beginning
+   '191018_14_30_00'; % misaligned?
+   %'191018_14_11_33'; avg speed =0
+   '191209_13_44_12';
+   %'191209_14_04_14'; %beh not good
+   '191209_14_32_39';
+   '191209_15_01_22'; %L_state is all QW, but good wshiker  
+   '191209_14_18_13';
+   '191209_14_46_58';
+   '200130_13_21_13 FunctAcq';
+   '200130_13_36_14 FunctAcq';
+   '200130_13_49_09 FunctAcq';
+   %'200130_14_02_12 FunctAcq';
+   '200130_14_15_24 FunctAcq';
+   '200130_14_29_30 FunctAcq';
+};
+
+D_eff_all = [];
+
+window_size = 5;
+
+for file_i = 1:length(folder_names)
+    
+    file = char(folder_names(file_i));
+    quickAnalysis;
+    
+    dff_rz_smoothed = smoothdata(dff_rz, 2, 'movmean', window_size);
+    
+    cov_matrix = cov(dff_rz_smoothed','partialrows'); 
+
+    [eigenvectors, eigenvalues_matrix] = eig(cov_matrix);
+    eigenvalues = diag(eigenvalues_matrix);
+
+    lambda_hat_sq = (eigenvalues.^2) ./ (sum(eigenvalues).^2);
+    D_eff = 1 / sum(lambda_hat_sq);
+
+    disp(['Effective Dimensionality (D_eff): ', num2str(D_eff)]);
+    D_eff_all = [D_eff_all D_eff];
+end
 
 
 
