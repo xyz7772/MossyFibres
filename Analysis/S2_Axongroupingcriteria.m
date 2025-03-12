@@ -23,14 +23,14 @@ set(gca, 'LineWidth', 1, 'FontSize', 18, ...
     'TickLength'  , [.02 .02] , ...
     'ZMinorTick'  , 'off'  ...
     )
-mfbFolderPath = 'X:\MFB';
+
 currentDate = datestr(now, 'yyyy-mm-dd');
-folderPath = fullfile(mfbFolderPath, 'Figures', 'Supp.Figures/S2/', currentDate);
-if ~exist(folderPath, 'dir')
-    mkdir(folderPath);
+savepath2 = fullfile(savepath, 'Figures', 'Supp.Figures/S2/', currentDate);
+if ~exist(savepath2, 'dir')
+    mkdir(savepath2);
 end
 fileName = ['example correlation distribution'];
-fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+fullFilePathPDF = fullfile(savepath2, [fileName,'.pdf']);
 exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
 groups_cc = {};
@@ -138,11 +138,11 @@ set(gca, 'LineWidth', 1, 'FontSize', 20, ...
     'ZMinorTick'  , 'off'  ...
     )
 fileName = ['LDR threshold'];
-fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+fullFilePathPDF = fullfile(savepath2, [fileName,'.pdf']);
 exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
 
-%% S2c
+%% Supp 2c
 m = [92,88]%[226 244];
 fig = figure('visible', 'on', 'position', [100 100 830 150]);
 
@@ -151,11 +151,6 @@ all_data = dff0_r(m,:);
 y_limits = [min(all_data(:)), max(all_data(:))];
 
 t = tiledlayout(length(m), 1, 'TileSpacing', 'none', 'Padding', 'compact');
-
-zz0=dff0_r_smooth;
-zz0(isnan(zz0))=0;
-i=226;j=244;
-a=get_var_ratio(zz0(i,:), zz0(j,:),1);
 
 for plot_i = 1:length(m)
     ax = nexttile;
@@ -169,7 +164,7 @@ end
 linkaxes(findall(fig, 'type', 'axes'), 'xy');
 ax = nexttile(length(m));
 hold(ax, 'on');
-x_start = x_limits(2) - 1000 - 100;
+x_start = x_limits(2) - 1100;
 y_start = y_limits(1) - 1.4;
 line(ax, [x_start, x_start+1000], [y_start, y_start],...
 'Color', 'k', 'LineWidth', 2, 'Clipping', 'off');
@@ -184,5 +179,5 @@ text(ax, x_start-150, y_start+0.2, '1 \DeltaF/F',...
 hold(ax, 'off');
 set(findall(fig, 'type', 'axes'), 'XLim', x_limits, 'YLim', y_limits);
 fileName = 'example_with_scale_bar';
-fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+fullFilePathPDF = fullfile(savepath2, [fileName,'.pdf']);
 exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');

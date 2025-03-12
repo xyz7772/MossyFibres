@@ -19,9 +19,9 @@ folder_names = {
    '200130_14_29_30 FunctAcq';
     };
 
-for ii=1:length(folder_names)
-    file=char(folder_names(ii));
-    quickAnalysis_Yizhou_fast; % load data
+for file_i=1:length(folder_names)
+    file=char(folder_names(file_i));
+    quickAnalysis;
     dt = 10;
     Nmf0 = size(dff0,1);
     dff0_r = reshape(permute(dff0, [1,3,2]), Nmf0, []);

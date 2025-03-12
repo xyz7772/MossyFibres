@@ -1,29 +1,19 @@
-%
-%   This script computes neural signal correlation matrices, plots their 
-%   distributions and heatmaps, displays sample dF/F traces, and generates 
-%   bootstrapped correlation and modulation pie charts.
-%
-% Author: Yizhou
-% Date: 2023/11/27
-% Updated: 2025/3/5
+clear all;close all;clc;
+Initialize
+%% select a folder
 file = '171212_16_19_37'; 
 quickAnalysis
 
-mfbFolderPath = 'X:\MFB';
 currentDate = datestr(now, 'yyyy-mm-dd');
-folderPath = fullfile(mfbFolderPath, 'Figures', 'Figure2', currentDate);
-if ~exist(folderPath, 'dir')
-    mkdir(folderPath);
+savepath2 = fullfile(savepath, 'Figures', 'Figure2', currentDate);
+if ~exist(savepath2, 'dir')
+    mkdir(savepath2);
 end
 
 % plot CC
 cc_MF_all = corr(dff_rz', 'rows', 'complete');
 cc_MF_stat = corr(dff_rz(:, L_state==0)', 'rows', 'complete');
 cc_MF_run = corr(dff_rz(:, L_state==1)', 'rows', 'complete');
-
-% cc_MF_all(eye(length(cc_MF_all))==1)=0;
-% cc_MF_stat(eye(length(cc_MF_stat))==1)=0;
-% cc_MF_run(eye(length(cc_MF_run))==1)=0;
 
 for i = 1:3
     if i == 1
@@ -57,7 +47,7 @@ for i = 1:3
     
     % print
     fileName = ['cc_matrix_' suffix];
-    fullFilePathPDF = fullfile(folderPath, [fileName, '.pdf']);
+    fullFilePathPDF = fullfile(savepath2, [fileName, '.pdf']);
     exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 end
 
@@ -81,9 +71,8 @@ xlabel('Pairwise corr.')
 ylabel('% Pairs')
 xlim([-1, 1]);
 
-% print
 fileName = ['cc_dist_allMF.png'];
-fullFilePathPDF = fullfile(folderPath, [fileName, '.pdf']);
+fullFilePathPDF = fullfile(savepath2, [fileName, '.pdf']);
 exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
 figure('Position', [100, 100, 300, 250])
@@ -111,7 +100,7 @@ set(gca, 'LineWidth', 1, 'FontSize', 17, 'TickDir', 'out')
 
 % print
 fileName = ['cc_dist_runVstat_' file];
-fullFilePathPDF = fullfile(folderPath, [fileName, '.pdf']);
+fullFilePathPDF = fullfile(savepath2, [fileName, '.pdf']);
 exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
 %% -- 2a. Heat Map of Activity
@@ -241,7 +230,7 @@ if plot_heatMap
     set(gca, 'Position', pos, 'LineWidth', 1, 'FontSize', 15, 'XColor', 'none', 'TickDir', 'out');
     
     fileName = ['HeatMap__', suffix, '.png'];
-    fullFilePathPDF = fullfile(folderPath, [fileName, '.pdf']);
+    fullFilePathPDF = fullfile(savepath2, [fileName, '.pdf']);
     exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 end
 
@@ -333,16 +322,17 @@ if plot_sampledff_separate
         
         % print
         fileName = ['sample_traces_separate__' suffix '.png'];
-        fullFilePathPDF = fullfile(folderPath, [fileName, '.pdf']);
+        fullFilePathPDF = fullfile(savepath2, [fileName, '.pdf']);
         exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
     end
 end
 
 run_r_all = run_r;
 
-filePath = fullfile('X:\MFB\MFB_AH_2023\Correlation_data', ['corr_', folder_name, '.mat']);
+filePath = fullfile(savepath, ['corr_', folder_name, '.mat']);
 save(filePath, 'cc_MF_all', 'cc_MF_stat', 'cc_MF_run', 'folder_name', 'dff_r', ...
-    'L_state', 'A_state', 'Q_state', 'MI_whisker_r', 'dff_rz', 'MI_wheel_r', 'spd_r', 'run_r_all', 'Nmf', 'whl_r', 'whl_rs', 'xyz');
+    'L_state', 'A_state', 'Q_state', 'MI_whisker_r', 'dff_rz', 'MI_wheel_r', 'spd_r', ...
+    'run_r_all', 'Nmf', 'whl_r', 'whl_rs', 'xyz');
 
 %% pie
 figure('Position', [100, 100, 320, 270])
@@ -351,7 +341,7 @@ hold on
 axis off
 block_size = 100;
 sig_level = 2;
-[cc_0, zc_0] = bootstrap_cc(dff_rz', L_state', block_size, 20);
+[cc_0, zc_0] = bootstrap_cc(dff_rz', L_state', block_size, 1000);
 pm_counts = nansum(zc_0 > sig_level);
 ns_counts = nansum(abs(zc_0) < sig_level);
 nm_counts = nansum(zc_0 < -sig_level);
@@ -366,7 +356,7 @@ newTitlePos = titlePos + [0, 0.3, 0];
 set(ht, 'Position', newTitlePos);
 set(gca, 'Position', [0.13, 0.15, 0.6, 0.6])
 fileName = ['modLoc_' file '__pie.png'];
-fullFilePathPDF = fullfile(folderPath, [fileName, '.pdf']);
+fullFilePathPDF = fullfile(savepath2, [fileName, '.pdf']);
 exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
 h = figure('Position', [100, 100, 300, 250]); 
@@ -387,16 +377,16 @@ ylabel('# MFAs')
 set(gca, 'LineWidth', 1, 'FontSize', 17)
 % print
 fileName = ['Bootstrapped Corr_' file];
-fullFilePathPDF = fullfile(folderPath, [fileName, '.pdf']);
+fullFilePathPDF = fullfile(savepath2, [fileName, '.pdf']);
 exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
-%% second half
-% 2e
+%% fig 2d,e
+
+path_home = 'X:\2024\work\MossyFibres';
+
 corr_all_combined = 1;
-% fig.2d
 if corr_all_combined == 1
-    load('X:\MFB\MFB_AH_2023\Correlation_data\CorrLoco.mat')
-    
+    load([path_home '\preprocessing\Correlation data\CorrLoco.mat'])
     figure('Position', [100, 100, 400, 350])
     subplot(111)
     hold on
@@ -417,15 +407,8 @@ if corr_all_combined == 1
     ylabel('Probability')
     set(gca, 'LineWidth', 1, 'FontSize', 22, 'TickDir', 'out', 'box', 'off')
     
-    mfbFolderPath = 'X:\MFB';
-    currentDate = datestr(now, 'yyyy-mm-dd');
-    folderPath = fullfile(mfbFolderPath, 'Figures', 'Figure2', currentDate);
-    if ~exist(folderPath, 'dir')
-        mkdir(folderPath);
-    end
-    
     fileName = ['Pairwise corr_probability'];
-    fullFilePathPDF = fullfile(folderPath, [fileName, '.pdf']);
+    fullFilePathPDF = fullfile(savepath2, [fileName, '.pdf']);
     exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
     
     % -
@@ -450,15 +433,12 @@ if corr_all_combined == 1
     
     % print
     fileName = ['Pairwise corr_cdf'];
-    fullFilePathPDF = fullfile(folderPath, [fileName, '.pdf']);
+    fullFilePathPDF = fullfile(savepath2, [fileName, '.pdf']);
     exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 end
 
-%% - 2f('Bootstrapped Corr.')
-filePath = fullfile('X:\MFB\MFB_AH_2023\Correlation_data', ['CorrLoco.mat']);
-load(filePath); 
-block_size = 100;
-
+%% fig 2f
+load([path_home '\preprocessing\Correlation data\CorrLoco.mat'])
 h = figure('Position', [100, 100, 300, 250]);
 hold on;
 sig_level = 2;
@@ -477,10 +457,10 @@ ylabel('# MFAs')
 set(gca, 'LineWidth', 1, 'FontSize', 15)
 % print
 fileName = ['Bootstrapped Corr'];
-fullFilePathPDF = fullfile(folderPath, [fileName, '.pdf']);
+fullFilePathPDF = fullfile(savepath2, [fileName, '.pdf']);
 exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
-%% fig.2g pie
+%% fig 2g pie
 figure('Position', [100, 100, 500, 450])
 subplot(111);
 hold on
@@ -513,5 +493,5 @@ set(ht, 'Position', newTitlePos);
 set(gca, 'Position', [0.13, 0.15, 0.6, 0.6])
 
 fileName = ['modLoc_allMice__pie'];
-fullFilePathPDF = fullfile(folderPath, [fileName, '.pdf']);
+fullFilePathPDF = fullfile(savepath2, [fileName, '.pdf']);
 exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');

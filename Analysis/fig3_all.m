@@ -1,26 +1,17 @@
 clear all;close all;clc
-path_home = 'X:\MFB\MFB_AH_2023';
-addpath([path_home '/Init']);
-addpath([path_home '/Analysis/Analysis_pipeline']);
-addpath([path_home '/Analysis/Analysis_pipeline/Utilities']);
-addpath 'X:\MFB\MFB_AH_2023\Init'
-run 'X:\MFB\MFB_AH_2023\Init\Initialize';
+%% fig 3a heat map of activity
+concat_folder = 'X:\MFB\Concatenation data'; % path to concatenated data folder
+load([concat_folder '\concat_Animal2.mat'])
 
-%% 3a. heat map of activity
-load('X:\MFB\MFB_AH_2023\Correlation_data\concat_Bill.mat')
+r2w = [linspace(1, 1, 128)', linspace(0, 1, 128)', linspace(0, 1, 128)'];
+w2b = [linspace(1, 0, 128)', linspace(1, 0, 128)', linspace(1, 1, 128)'];
+r2b = [r2w; w2b];
 
-redToWhite = [linspace(1, 1, 128)', linspace(0, 1, 128)', linspace(0, 1, 128)'];
-whiteToBlue = [linspace(1, 0, 128)', linspace(1, 0, 128)', linspace(1, 1, 128)'];
-redToBlueMap = [redToWhite; whiteToBlue];
-
-mycm=flipud(redToBlueMap);
+mycm = flipud(r2b);
 suffix = 'changeSorted';
-
 Nmf = size(dff_r,1);
 Ntot = Nmf;
 dt = 10;
-
-
 figure('Position', [30 20 2000 700])
 sbplt1 = [1:8];
 sbplt2 = [9];
@@ -31,7 +22,7 @@ ccs = corr(L_state', dff_rz', 'rows', 'complete');
 [a,b]=sort(ccs);
 zz = dff_rz(b,:);
 
-%clean
+% clean
 nans_t = any(isnan(dff_rz), 1);
 
 dff_rz(:, nans_t) = [];
@@ -53,7 +44,6 @@ uv = round(sorted_zz(upper_i), 1);
 xlm = [0,size(zz,2)];
 subplot(sbp_no,1,sbplt1); hold on
 imagesc(zz, [lv,uv]);
-
 
 ylb = ylabel('Mossy fiber axon number');
 set(ylb, 'Units', 'Normalized', 'Position', [-.04, 0.5, 0]);
@@ -137,32 +127,28 @@ end
 plot(time, MI_wheel_r, 'color', [173,210,157]/255, 'LineWidth',1);
 set(gca, 'LineWidth', 1, 'FontSize', 17, 'XColor', 'none')
 
-mfbFolderPath = 'X:\MFB';
-currentDate = datestr(now, 'yyyy-mm-dd');
-folderPath = fullfile(mfbFolderPath, 'Figures', 'Figure3', currentDate);
-if ~exist(folderPath, 'dir')
-    mkdir(folderPath);
-end
 
+currentDate = datestr(now, 'yyyy-mm-dd');
+savepath2 = fullfile(savepath, 'Figures', 'Figure3', currentDate);
+if ~exist(savepath2, 'dir')
+    mkdir(savepath2);
+end
 fileName = ['HeatMap__' suffix];
-fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+fullFilePathPDF = fullfile(savepath2, [fileName,'.pdf']);
 exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
 
+%% fig 3b pc
 
-%% 3b.pc
 
-folderPath = 'X:\MFB\MFB_AH_2023\Correlation_data';
-files = dir(fullfile(folderPath, 'concat_*.mat'));
-
+files = dir(fullfile(concat_folder, 'concat_*.mat'));
 idx = 5;
-filePath = fullfile(folderPath, files(idx).name)
+filePath = fullfile(concat_folder, files(idx).name)
 load(filePath);
 
 dff_rz = (dff_r - nanmean(dff_r')') ./ nanstd(dff_r')'; 
 zz = dff_rz;
-
-[cc_wL, zc_wL] = bootstrap_cc(zz', L_state', 100, 100);
+[cc_wL, zc_wL] = bootstrap_cc(zz', L_state', 100, 200);
 sig_level = 2;
 pm = zc_wL > sig_level;
 pm_val = zc_wL(pm);
@@ -173,7 +159,6 @@ nm_val = zc_wL(nm);
 ns = abs(zc_wL) < sig_level;
 ns_val = zc_wL(ns);
 [~, ns_ids] = find(ns == 1);
-%zz= zz(pm_ids,:);
 
 dt = 10;
 nsh = 10;
@@ -249,63 +234,11 @@ zlabel('PC 3')
 set(gca, 'LineWidth', 1, 'FontSize', fs, 'TickDir', 'out', 'TickLength',[.025,.025])
 
 fileName = ['pc_activitiy_proj_' files(idx).name(1:end-4)];
-fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+fullFilePathPDF = fullfile(savepath, [fileName,'.pdf']);
 exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
-%%
-videoFile = 'X:\MFB\Figures\Figure3\Video_S3_Jeremy'; 
-v = VideoWriter(videoFile,"MPEG-4");
-v.FrameRate = 30;
-open(v);
-numFrames = 180;
-angle1 = linspace(0, 360, numFrames);
-angle2 = linspace(22, 25, numFrames);
-
-for t = 1:numFrames
-    view(angle1(t), angle2(t)); 
-    drawnow;
-    frame = getframe(gcf);
-    writeVideo(v, frame);
-end
-
-close(v)
     
-%% 3c. manifold_distance
-
-
-%Jeremy
-Jeremy_names = {
-    '191018_13_39_41';
-    '191018_13_56_55';
-    '191018_14_30_00';
-    '191018_14_11_33';
-    };
-
-%Bernie
-Bernie_names = {
-   '191209_13_44_12';
-   '191209_14_04_14';
-   '191209_14_32_39';
-   '191209_15_01_22';
-   '191209_14_18_13';
-   '191209_14_46_58';
-    };
-
-%Nigel
-Nigel_names = {
-    '171212_16_19_37';
-    };
-
-%Bill
-folder_names = {
-    '200130_13_21_13 FunctAcq';
-    '200130_13_36_14 FunctAcq';
-    '200130_13_49_09 FunctAcq';
-    %'200130_14_02_12 FunctAcq';
-    '200130_14_15_24 FunctAcq';
-    '200130_14_29_30 FunctAcq';
-    };
-
+%% fig 3c manifold_distance
 %Select
 folder_names = {
    '171212_16_19_37';
@@ -328,7 +261,6 @@ folder_names = {
     };
 
 num_PCs = 2;
-
 angle_LQ_val = [];
 angle_LQ_sh = [];
 angle_LQ_sh_bl = [];
@@ -341,7 +273,7 @@ dist_LQ = [];
 ijks = [];
 
 for ii = 1:length(folder_names)
-    %
+
     file=char(folder_names(ii));
     quickAnalysis;
     block_size = 100;     
@@ -393,7 +325,7 @@ scatter(ones(size(dist_L)) * bar_positions(1), dist_L, 'o', 'MarkerFaceColor', '
 scatter(ones(size(dist_Q)) * bar_positions(2), dist_Q, 'o', 'MarkerFaceColor', 'none', 'MarkerEdgeColor', 'cyan','LineWidth', 1.5);
 scatter(ones(size(dist_LQ)) * bar_positions(3), dist_LQ, 'o', 'MarkerFaceColor', 'none', 'MarkerEdgeColor', [0.5,0.5,0.5],'LineWidth', 1.5);
 
-hErrorbar = errorbar(bar_positions, [avg_L, avg_Q, avg_LQ], [sem_L, sem_Q, sem_LQ], 'k', 'linestyle', 'none'); % 改为SEM
+hErrorbar = errorbar(bar_positions, [avg_L, avg_Q, avg_LQ], [sem_L, sem_Q, sem_LQ], 'k', 'linestyle', 'none');
 uistack(hErrorbar, 'top');
 fs = 15;
 xlim([0,4])
@@ -408,7 +340,6 @@ set(gca, 'LineWidth', 1, 'FontSize', fs, 'TickDir', 'out', 'TickLength',[.025,.0
 
 box("off")
 
-
 [p_LQ, h_LQ] = signrank(dist_L, dist_Q);
 [p_L_LQ, h_L_LQ] = signrank(dist_L, dist_LQ);
 [p_Q_LQ, h_Q_LQ] = signrank(dist_Q, dist_LQ);
@@ -417,18 +348,12 @@ disp(['AA and QQ: p value = ', num2str(p_LQ)]);
 disp(['AA and AQ: p value = ', num2str(p_L_LQ)]);
 disp(['QQ and AQ: p value  = ', num2str(p_Q_LQ)]);
 
-mfbFolderPath = 'X:\MFB';
-currentDate = datestr(now, 'yyyy-mm-dd');
-folderPath = fullfile(mfbFolderPath, 'Figures', 'Figure3', currentDate);
-if ~exist(folderPath, 'dir')
-    mkdir(folderPath);
-end
 
 fileName = ['Manifold_distance_all'];
-fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+fullFilePathPDF = fullfile(savepath2, [fileName,'.pdf']);
 exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
-%% 3d Manifold Angle
+%% fig 3d Manifold Angle
 num_PCs = 2;
 angle_LQ_val = [];
 angle_LQ_min = [];
@@ -514,10 +439,10 @@ set(gca, 'LineWidth', 1, 'FontSize', fs, 'TickDir', 'out', 'TickLength', [.025, 
 ylabel('Angle (rad.)')
 
 fileName = 'manifold_angle_all';
-fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+fullFilePathPDF = fullfile(savepath2, [fileName,'.pdf']);
 exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
-%% 3e manifold_angle_percentile PM/NM
+%% fig 3e manifold_angle_percentile PM/NM
 num_PCs = 2;
 Ns = [];
 prcnts = 10:10:90;
@@ -561,7 +486,7 @@ for file_i = 1:length(folder_names)
         ashes = [];
         N_itr = 20;
         for kk = 1:N_itr
-            bl_sz = 1000;
+            bl_sz = 1000; % 10s
             dff_sh_bl = dff_r(:, randblock(1:floor(T/bl_sz)*bl_sz, [1, bl_sz]));
 
             dff_1 = dff_sh_bl(ids, 1:size(dff_sh_bl,2)/2);
@@ -601,19 +526,10 @@ ylabel('Angle (rad.)')
 xlabel('PM/NM excl. percentile (%)')
 
 fileName = 'manifold_angle_percentiles';
-fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+fullFilePathPDF = fullfile(savepath2, [fileName,'.pdf']);
 exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
-%%
-datasavep = 'X:\MFB\Processed\Figure 3';
-if ~exist(datasavep, 'dir')
-    mkdir(datasavep);
-end
-fileName = 'manifold_angle_percentiles.mat';
-fullFilePath = fullfile(datasavep, fileName);
-save(fullFilePath, 'angles_LQ', 'angles_LQ_shuffle', 'prcnts');
-
-%% 3fg
+%% fig 3 fg
 num_PCs = 2;
 Ns = [];
 prcnts = 10:10:90;
@@ -629,7 +545,7 @@ for md = 1:2
         block_size = 100;
 
         if ~all(L_state == 0)
-            [cc_wL, zc_wL] = bootstrap_cc(dff_rz', L_state', block_size, 100);
+            [cc_wL, zc_wL] = bootstrap_cc(dff_rz', L_state', block_size, 200);
         else
             continue;
         end
@@ -693,7 +609,6 @@ for md = 1:2
         angles_LQ = [angles_LQ; angle_LQ_val];
         angles_LQ_shuffle = [angles_LQ_shuffle; angle_LQ_shuffle];
     end
-
    
     figure('Position', [100, 100, 400, 300]);
     hold on;
@@ -717,23 +632,8 @@ for md = 1:2
     ylabel('Angle (rad.)');
     xlabel([suffix, ' excl. percentile (%)']);
 
-    mfbFolderPath = 'X:\MFB';
-    currentDate = datestr(now, 'yyyy-mm-dd');
-    folderPath = fullfile(mfbFolderPath, 'Figures', 'Figure3', currentDate);
-    if ~exist(folderPath, 'dir')
-        mkdir(folderPath);
-    end
-
     fileName = ['manifold_angle_percentiles_', suffix];
-    fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+    fullFilePathPDF = fullfile(savepath2, [fileName,'.pdf']);
     exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
-
-    datasavep = 'X:\MFB\Processed\Figure 3';
-    if ~exist(datasavep, 'dir')
-        mkdir(datasavep);
-    end
-    fullFilePath = fullfile(datasavep, fileName);
-    save(fullFilePath, 'angles_LQ', 'angles_LQ_shuffle', 'prcnts');
-
 end
 

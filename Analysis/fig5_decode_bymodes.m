@@ -1,17 +1,15 @@
-% This code is used to analyse the relationship between neural activity  
-% and behaviors (Loco, Whisk, and State) through ridge regression combined with PCA and CVEV 
-% to evaluate the prediction performance.
-
+clear all; close all; clc
+%% all folders
 folder_names = {
    '171212_16_19_37';
    '191018_13_39_41';
-   %'191018_13_56_55';
+   %'191018_13_56_55'; % sessions are removed due to no beh
    '191018_14_30_00';
    %'191018_14_11_33';
    '191209_13_44_12';
    %'191209_14_04_14';
    '191209_14_32_39';
-   '191209_15_01_22'; % L_state is all QW, but good whisker  
+   '191209_15_01_22'; % No loco,state, but good whisker  
    '191209_14_18_13';
    '191209_14_46_58';
    '200130_13_21_13 FunctAcq';
@@ -21,8 +19,7 @@ folder_names = {
    '200130_14_15_24 FunctAcq';
    '200130_14_29_30 FunctAcq';
     };
-
-
+savepath = 'X:\MFB';
 %% Plot by 1-100 modes
 plot_decode_all_modes = 1;
 if plot_decode_all_modes == 1
@@ -47,13 +44,13 @@ if plot_decode_all_modes == 1
         % PCA
         [coeff, score, ~, ~, ~] = pca(X);
 
-        NN = 1:100;
-        mean_cvev_loco_all = zeros(1, length(NN));
-        mean_cvev_wsk_all = zeros(1, length(NN));
-        mean_cvev_state_all = zeros(1, length(NN));
+        NC = 1:100;
+        mean_cvev_loco_all = zeros(1, length(NC));
+        mean_cvev_wsk_all = zeros(1, length(NC));
+        mean_cvev_state_all = zeros(1, length(NC));
 
-        for sj = 1:length(NN)
-            N = NN(sj);
+        for sj = 1:length(NC)
+            N = NC(sj);
             X_n = score(:, 1:N);
 
             cvp = cvpartition(size(X_n, 1), 'KFold', 5);
@@ -75,13 +72,11 @@ if plot_decode_all_modes == 1
                 [CVEV, ~, ~] = myRidge({X_train, X_train, X_train}, Y_train_all, ...
                                        {X_test, X_test, X_test}, Y_test_all, lambda);
 
-
                 cvev_loco(f) = CVEV(1);
                 cvev_wsk(f) = CVEV(2);
                 cvev_state(f) = CVEV(3);
             end
 
-        
             mean_cvev_loco_all(sj) = mean(cvev_loco);
             mean_cvev_wsk_all(sj) = mean(cvev_wsk);
             mean_cvev_state_all(sj) = mean(cvev_state);
@@ -94,11 +89,7 @@ if plot_decode_all_modes == 1
 end
 
 %% Save the results
-save('X:\MFB\MFB_AH_2023\Correlation_data\decode\results_1-100.mat', ...
-    'Cvev_loco','Cvev_wsk','Cvev_state');
-
-
-
+save([savepath '\decode\results_1-100.mat'], 'Cvev_loco','Cvev_wsk','Cvev_state');
 
 %% Decode by optimal modes/selected modes
 
@@ -113,13 +104,6 @@ for file_i = 1:length(folder_names)
 
     X = dff_rz';
     [coeff, score, ~, ~, ~] = pca(X);
-
-    % Extract optimal modes for decoding
-    % Uncomment and load optimal_modes.mat if needed
-    % load('X:\MFB\MFB_AH_2023\Correlation_data\decode\optimal_modes.mat')
-    % N1 = optimal_modes_loco(file_i);
-    % N2 = optimal_modes_wsk(file_i);
-    % N3 = optimal_modes_state(file_i);
 
     N1 = 10;
     N2 = 10;
@@ -157,7 +141,6 @@ for file_i = 1:length(folder_names)
     Cvev_wsk{file_i} = mean(cvev_wsk);
     Cvev_state{file_i} = mean(cvev_state);
 
-
     Actual_loco_all{file_i} = Y(testIdx);
     Actual_whisk_all{file_i} = Y2(testIdx);
     Actual_state_all{file_i} = Y3(testIdx);
@@ -169,54 +152,11 @@ end
 
 
 %% Save the results
-save('X:\MFB\MFB_AH_2023\Correlation_data\decode\results_optimal_modes.mat', ...
-    'Cvev_loco','Cvev_wsk','Cvev_state');
-
-
-%% Plot correlation
-if N ==1
-means = [nanmean(corr1), nanmean(corr2), nanmean(corr3)];
-set(figure, 'Position', [400, 100, 400, 350]);
-bar(means, 'FaceColor', [0.6,0.6,0.6]);
-hold on;
-
-nGroups = length(means);
-for i = 1:nGroups
-    x = i;
-    switch i
-        case 1
-            scatter(x*ones(1, numel(corr1)), corr1, 'k');
-        case 2
-            scatter(x*ones(1, numel(corr2)), corr2, 'k');
-        case 3
-            scatter(x*ones(1, numel(corr3)), corr3, 'k');
-    end
-end
-
-ylabel('Corr');
-xticks(1:nGroups);
-box('off')
-xticklabels({'Loco', 'Whisk', 'States'});
-hold off;
-set(gca, 'Box', 'off', 'FontSize', 15, 'Linewidth',1);
-
-
-% print
-mfbFolderPath = 'X:\MFB';
-currentDate = datestr(now, 'yyyy-mm-dd');
-folderPath = fullfile(mfbFolderPath, 'Figures', 'Figure5', currentDate);
-if ~exist(folderPath, 'dir')
-    mkdir(folderPath);
-end
-
-fileName = [ 'corr_PC1_states.png'];
-fullFilePath = fullfile(folderPath, fileName);
-print(fullFilePath, '-dpng', '-r300');
-end
+save([savepath '\decode\results_optimal_modes.mat'], 'Cvev_loco','Cvev_wsk','Cvev_state');
 
 %% plot test vs pred
  
-k=13; % choose datset
+k = 13; % choose a datset
 
 set(figure, 'Position', [400, 100, 500, 190]);
 
@@ -229,7 +169,7 @@ for i = 1:numel(cell1)
 end
 average_test = mean(Data, 2);
 
-cell2=Decode_loco_all{k};
+cell2 = Decode_loco_all{k};
 minL = min(cellfun(@(x) numel(x), cell2));
 Data = zeros(minL, numel(cell2));
 for i = 1:numel(cell2)
@@ -238,9 +178,9 @@ end
 average_pred = mean(Data, 2);
 
 subplot(3, 1, 1);
-h1=plot(average_test, 'color',[0.6,0.6,0.6],'LineWidth',1);
+h1 = plot(average_test, 'color',[0.6,0.6,0.6],'LineWidth',1);
 hold on;
-h2=plot(average_pred,'color',[173,210,157]/255,'LineWidth',1);
+h2 = plot(average_pred,'color',[173,210,157]/255,'LineWidth',1);
 disp(['Loco Cvev=' num2str(Cvev_loco{k}, '%.2f')])
 
 xlabel('Time');
@@ -249,7 +189,7 @@ box('off')
 axis off;
 
 % Plot Wsk
-cell3=Actual_whisk_all{k};
+cell3 = Actual_whisk_all{k};
 minL = min(cellfun(@(x) numel(x), cell3));
 Data = zeros(minL, numel(cell3));
 for i = 1:numel(cell3)
@@ -257,7 +197,7 @@ for i = 1:numel(cell3)
 end
 average_test = mean(Data, 2);
 
-cell4=Decode_whisk_all{k};
+cell4 = Decode_whisk_all{k};
 minL = min(cellfun(@(x) numel(x), cell4));
 Data = zeros(minL, numel(cell4));
 for i = 1:numel(cell4)
@@ -265,19 +205,19 @@ for i = 1:numel(cell4)
 end
 average_pred = mean(Data, 2);
 subplot(3, 1, 2);
-h3=plot(average_test, 'color',[0.6,0.6,0.6],'LineWidth',1);
+h3 = plot(average_test, 'color',[0.6,0.6,0.6],'LineWidth',1);
 hold on;
-h4=plot(average_pred,'color',[255,163,26]/255,'LineWidth',1);
+h4 = plot(average_pred,'color',[255,163,26]/255,'LineWidth',1);
 
 disp(['Whisk Cvev=' num2str(Cvev_wsk{k}, '%.2f')])
 box('off')
 axis off;
 
 % Plot states
-cell5=Actual_state_all{k}{end};
+cell5 = Actual_state_all{k}{end};
 average_test = cell5;
 
-cell6=Decode_state_all{k};
+cell6 = Decode_state_all{k};
 minL = min(cellfun(@(x) numel(x), cell6));
 Data = zeros(minL, numel(cell6));
 for i = 1:numel(cell6)
@@ -285,9 +225,9 @@ for i = 1:numel(cell6)
 end
 average_pred = mean(Data, 2);
 subplot(3, 1, 3);
-h5=plot(average_test, 'color',[0.6,0.6,0.6],'LineWidth',1); 
+h5 = plot(average_test, 'color',[0.6,0.6,0.6],'LineWidth',1); 
 hold on;
-h=plot(average_pred,'color',[255,53,255]/255,'LineWidth',1);
+h = plot(average_pred,'color',[255,53,255]/255,'LineWidth',1);
 
 ax = gca;
 xlims = ax.XLim;
@@ -301,7 +241,13 @@ disp(['state Cvev=' num2str(Cvev_state{k}, '%.2f')])
 box('off')
 axis off;
 
+currentDate = datestr(now, 'yyyy-mm-dd');
+savepath2 = fullfile(savepath, 'Figures', 'Figure5', currentDate);
+if ~exist(savepath2, 'dir')
+    mkdir(savepath2);
+end
+
 fileName = [ 'Ridge_' file '_mode# ' num2str(N) '.png'];
-fullFilePath = fullfile(folderPath, fileName);
+fullFilePath = fullfile(savepath2, fileName);
 print(fullFilePath, '-dpng', '-r300');
 

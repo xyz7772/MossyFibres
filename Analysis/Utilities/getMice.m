@@ -1,12 +1,13 @@
-function category = getMice(fileName, Jeremy_names, Bernie_names, Bill_names, Nigel_names)
-    if ismember(fileName, Jeremy_names)
-        category = 'Jeremy';
-    elseif ismember(fileName, Bernie_names)
-        category = 'Bernie';
-    elseif ismember(fileName, Bill_names)
-        category = 'Bill';
-    elseif ismember(fileName, Nigel_names)
-        category = 'Nigel';
+function category = getMice(fileName)
+    Initialize
+    if ismember(fileName, A1_data)
+        category = 'Animal1';
+    elseif ismember(fileName, A2_data)
+        category = 'Animal2';
+    elseif ismember(fileName, A3_data)
+        category = 'Animal3';
+    elseif ismember(fileName, A4_data)
+        category = 'Animal4';
     else
         category = 'Unknown';
     end

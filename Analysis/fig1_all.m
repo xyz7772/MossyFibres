@@ -1,3 +1,4 @@
+clear all;close all;clc
 %% Select a dataset
 file = '191209_13_44_12';
 quickAnalysis;
@@ -28,17 +29,15 @@ set(gca, 'LineWidth', 1, 'FontSize', 15, ...
     'YMinorTick'  , 'off'   , ...
     'ZMinorTick'  , 'off'  )
 
-mfpath = 'X:\MFB';
 Date = datestr(now, 'yyyy-mm-dd');
-folderPath = fullfile(mfpath, 'Figures', 'Figure1', Date);
-if ~exist(folderPath, 'dir')
-    mkdir(folderPath);
+savepath2 = fullfile(savepath, 'Figures', 'Figure1', Date);
+if ~exist(savepath2, 'dir')
+    mkdir(savepath2);
 end
 
 fileName = ['SpatialPosition3d_' file];
-fullFilePathPDF = fullfile(folderPath, [fileName, '.pdf']);
+fullFilePathPDF = fullfile(savepath2, [fileName, '.pdf']);
 exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
-
 
 
 %% fig.1f subgroups correlation
@@ -59,8 +58,7 @@ g = [linspace(0, 1, halfN), linspace(1, 0, halfN)];
 b = [linspace(1, 1, halfN), linspace(1, 0, halfN)];
 colorMap = [r' g' b'];
 
-%
-fig=figure;
+fig = figure;
 set(fig, 'Position', [400, 100, 410, 380]);
 
 imagesc(ccS);
@@ -95,16 +93,15 @@ colors = [
 
 totalElements = sum(cellfun(@(x) numel(x), sids));
 
-
 % Calculate the boundary indices for each subgroup (x,y)
 x_Sum = min(YLim)+[0, cumsum(cellfun(@length, sids))];
 totalLength = max(x_Sum);
-groupIntervals = diff(x_Sum);
+groupItv = diff(x_Sum);
 y_Sum = zeros(size(x_Sum));
 currentStart = totalLength;
-for i = 1:length(groupIntervals)
+for i = 1:length(groupItv)
     y_Sum(i) = currentStart;
-    currentStart = currentStart - groupIntervals(i);
+    currentStart = currentStart - groupItv(i);
 end
 y_Sum(end) = 0.5;
 
@@ -135,18 +132,8 @@ for i = 1:length(ssgroups)
     line([midLineX, midLineX], [0, 1], 'Color', 'w', 'LineWidth', 1);
 end
 
-
-axes(gca);
-
-mfpath = 'X:\MFB';
-Date = datestr(now, 'yyyy-mm-dd');
-folderPath = fullfile(mfpath, 'Figures', 'Figure1', Date);
-if ~exist(folderPath, 'dir')
-    mkdir(folderPath);
-end
-
 fileName = ['subgroups_' file '_corr'];
-fullFilePathPDF = fullfile(folderPath, [fileName, '.pdf']);
+fullFilePathPDF = fullfile(savepath2, [fileName, '.pdf']);
 exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
 %% - fig.1e sample df/f
@@ -185,7 +172,7 @@ if plot_sampledff
 
 
     for i = 1:MF_no
-        zzf = squeeze(dff_all_z(:,MF_id(i),pre:end)); %Z-scored data
+        zzf = squeeze(dff_all_z(:,MF_id(i),pre:end)); % Z-scored data
         y_shift = y_shift + nanmax(zzf(:));
         for j = 1:Ntr
             if j == 1; pre = 30;
@@ -223,7 +210,7 @@ if plot_sampledff
     axis tight;
     
     fileName = ['sample_traces_' file];
-    fullFilePathPDF = fullfile(folderPath, [fileName, '.pdf']);
+    fullFilePathPDF = fullfile(savepath2, [fileName, '.pdf']);
     exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
 end
@@ -292,7 +279,7 @@ if plot_1g==1
     
     % print
     fileName = ['MFB per axon'];
-    fullFilePathPDF = fullfile(folderPath, [fileName, '.pdf']);
+    fullFilePathPDF = fullfile(savepath2, [fileName, '.pdf']);
     exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
     
     figure;
@@ -330,7 +317,7 @@ if plot_1g==1
     plot([r1, r2], [maxdist*0.992, maxdist*0.992], 'k', 'LineWidth', 4);
     
     fileName = ['histogram_MFA_distance_all'];
-    fullFilePathPDF = fullfile(folderPath, [fileName, '.pdf']);
+    fullFilePathPDF = fullfile(savepath2, [fileName, '.pdf']);
     exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
 end
@@ -402,7 +389,7 @@ annotation('textbox', [0.79, 0.08, 0.09, 0.04], 'String', '20 s', ...
            'EdgeColor', 'none', 'FontSize', 12);
 
 fileName = ['heatMap_' file];
-fullFilePathPDF = fullfile(folderPath, [fileName, '.pdf']);
+fullFilePathPDF = fullfile(savepath2, [fileName, '.pdf']);
 exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
 

@@ -1,23 +1,10 @@
-%Jeremy
-Jeremy_names = {
-    '191018_13_39_41';
-    '191018_13_56_55';
-    '191018_14_30_00';
-    '191018_14_11_33';
+
+A1_data = {
+    '171212_16_19_37';
     };
 
-%Bernie
-Bernie_names = {
-   '191209_13_44_12';
-   '191209_14_04_14';
-   '191209_14_32_39';
-   '191209_15_01_22';
-   '191209_14_18_13';
-   '191209_14_46_58';
-    };
 
-%Bill
-Bill_names = {
+A2_data = {
     '200130_13_21_13 FunctAcq';
     '200130_13_36_14 FunctAcq';
     '200130_13_49_09 FunctAcq';
@@ -26,12 +13,23 @@ Bill_names = {
     '200130_14_29_30 FunctAcq';
     };
 
-%Nigel
-Nigel_names = {
-    '171212_16_19_37';
+A3_data = {
+    '191018_13_39_41';
+    '191018_13_56_55';
+    '191018_14_30_00';
+    '191018_14_11_33';
     };
 
-%Select
+A4_data = {
+   '191209_13_44_12';
+   '191209_14_04_14';
+   '191209_14_32_39';
+   '191209_15_01_22';
+   '191209_14_18_13';
+   '191209_14_46_58';
+    };
+
+% Select list (all with clear active state)
 folder_names = {
    '171212_16_19_37';
    '191018_13_39_41';
@@ -52,40 +50,16 @@ folder_names = {
    '200130_14_29_30 FunctAcq';
     };
 
-% % for no puff
-% folder_names = {
-%    %'171212_16_19_37';
-%    %'191018_13_39_41';
-%    %'191018_13_56_55';
-%    '191018_14_30_00';
-%    %'191018_14_11_33';
-%    %'191209_13_44_12';
-%    %'191209_14_04_14';
-%    '191209_14_32_39';
-%    '191209_15_01_22';
-%    '191209_14_18_13';
-%    '191209_14_46_58';
-%    %'200130_13_21_13 FunctAcq';
-%    '200130_13_36_14 FunctAcq';
-%    '200130_13_49_09 FunctAcq';
-%    %'200130_14_02_12 FunctAcq';
-%    '200130_14_15_24 FunctAcq';
-%    %'200130_14_29_30 FunctAcq';
-%     };
-
-varexp=cell(length(folder_names),1);
-numcomp=zeros(length(folder_names),1);
-c_bill=[.1,.5,.8];
-c_jeremy=[1,.7,0];
-c_bernie=[.7,.1,.7];
-c_nigel=[1,.4,.4];
-dataset_colors = {c_nigel,c_jeremy,c_jeremy,c_bernie,c_bernie,c_bernie,c_bernie,c_bernie,c_bill,c_bill,c_bill,c_bill,c_bill};
-mice_colors = containers.Map({'Bernie', 'Bill', 'Jeremy', 'Nigel'}, ...
-                                 {c_bernie, c_bill, c_jeremy, c_nigel});
-
+varexp = cell(length(folder_names),1);
+numcomp = zeros(length(folder_names),1);
+c_Animal1 = [1,.4,.4];
+c_Animal2 = [.1,.5,.8];
+c_Animal3 = [1,.7,0];
+c_Animal4 = [.7,.1,.7];
+dataset_colors = {c_Animal1,c_Animal3,c_Animal3,c_Animal4,c_Animal4,c_Animal4,c_Animal4,c_Animal4,c_Animal2,c_Animal2,c_Animal2,c_Animal2,c_Animal2};
+mice_colors = containers.Map({'Animal1','Animal2', 'Animal3', 'Animal4'}, ...
+                                 {c_Animal1, c_Animal2, c_Animal3, c_Animal4});
 %% fig. 4C cross validated explained variance 
-% This section will calculate CVEV of all datasets and save varexp.mat to
-% a directory
 ve = cell(length(folder_names),1);
 varmax =[];
 dimmax =[];
@@ -96,7 +70,7 @@ for dataset_i = 1:length(folder_names)
     file=char(folder_names(dataset_i));
     quickAnalysis;
 
-    mice = getMice(folder_names{dataset_i}, Jeremy_names, Bernie_names, Bill_names, Nigel_names);
+    mice = getMice(folder_names{dataset_i});
     mice_colors_all{dataset_i} = mice_colors(mice);
     zz = dff_rz;
     zz(isnan(zz)) = 0;
@@ -104,7 +78,6 @@ for dataset_i = 1:length(folder_names)
     nSamples = size(dff_rz,1);    
     Nsub = 100;
 
-    % calc cvev
     [ve{dataset_i}, dm, vm] = get_dim(zz, Nsub,  Nsub, 100);
     
     ve_mean = nanmean(ve{dataset_i}, 1);
@@ -117,7 +90,6 @@ for dataset_i = 1:length(folder_names)
     varexp_all{dataset_i}=ve{dataset_i};
 
     % plot
-        
     x=1:nSamples;
     y_mean = varexp{dataset_i};
     y_sem = ve_sem;
@@ -156,23 +128,18 @@ ylabel('Variance explained (cross-val)')
 ylim([0, .5])
 yticks([0 0.25 0.5])
 
-mfbFolderPath = 'X:\MFB';
 currentDate = datestr(now, 'yyyy-mm-dd');
-folderPath = fullfile(mfbFolderPath, 'Figures', 'Figure4', currentDate);
-if ~exist(folderPath, 'dir')
-    mkdir(folderPath);
+savepath2 = fullfile(savepath, 'Figures', 'Figure4', currentDate);
+if ~exist(savepath2, 'dir')
+    mkdir(savepath2);
 end
 
 fileName = ['PCA_cvev'];
-fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+fullFilePathPDF = fullfile(savepath2, [fileName,'.pdf']);
 exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
-save("X:\MFB\MFB_AH_2023\varexp.mat", 'varexp','varexp_all','varmax','dimmax');
-
+save([savepath '\varexp.mat'], 'varexp','varexp_all','varmax','dimmax');
 
 %% fig. 4ab
-% Calculate the PCA of datasets with clear behaviour to obtain the first 20 normalized eigenvalues
-% and the loadings of the first 3 PCs.
-
 folder_names = {
    '171212_16_19_37';
    '191018_13_39_41';
@@ -242,7 +209,7 @@ for dataset_ix = 1:length(folder_names)
     end
 end
 
-%%
+%
 figure('Position',[200 100 880 300]); hold on;
 for ix = 1:size(eigen_20,2)
     face_color = dataset_colors{ix};    
@@ -259,15 +226,15 @@ ylim([0, .4])
 yticks([0 0.2 0.4])
 
 fileName = ['PCA_normalised_eigenvalue'];
-fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+fullFilePathPDF = fullfile(savepath2, [fileName,'.pdf']);
 exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
 % loadings
 group_names = {'All', 'PM', 'NM', 'NS'};
 colors = {
-    [0.8500, 0.3250, 0.98],
-    [1, 0, 0],           
-    [0, 0, 1],            
+    [0.85, 0.33, 0.98], ...
+    [1, 0, 0], ...           
+    [0, 0, 1], ...            
     [0.5, 0.5, 0.5]         
 };
 
@@ -302,23 +269,19 @@ for pc = 1:3
 end
 
 fileName = ['PCA_loadings_all_pm_nm'];
-fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+fullFilePathPDF = fullfile(savepath2, [fileName,'.pdf']);
 exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
 
+%% fig 4d
+load([savepath '\varexp.mat']) % path to varexp.mat
 
-
-
-%% 4d
-load("X:\MFB\MFB_AH_2023\varexp.mat")
-
-c_bill=[.1,.5,.8];
-c_jeremy=[1,.7,0];
-c_bernie=[.7,.1,.7];
-c_nigel=[1,.4,.4];
-dataset_colors = {c_nigel,c_jeremy,c_jeremy,c_jeremy,c_bernie,c_bernie,c_bernie,c_bernie,c_bernie,c_bernie,c_bill,c_bill,c_bill,c_bill,c_bill,c_bill};
-
-
+c_Animal1=[1,.4,.4];
+c_Animal2=[.1,.5,.8];
+c_Animal3=[1,.7,0];
+c_Animal4=[.7,.1,.7];
+dataset_colors = {c_Animal1,c_Animal3,c_Animal3,c_Animal3,c_Animal4,c_Animal4,c_Animal4,...
+    c_Animal4,c_Animal4,c_Animal4,c_Animal2,c_Animal2,c_Animal2,c_Animal2,c_Animal2,c_Animal2}; % for 16 sessions
 varmax_all = []; dimmax_all = []; col_all = [];
 for dataset_ix = 1:length(varexp)
     if ~isempty(varexp{dataset_ix})
@@ -347,16 +310,142 @@ for dataset_ix = 1:length(varexp)
         plot(varmax(dataset_ix),dimmax(dataset_ix),'vk','MarkerFaceColor',dataset_colors{dataset_ix},'MarkerEdgeColor',dataset_colors{dataset_ix})
     end
 end
-mfbFolderPath = 'X:\MFB';
-currentDate = datestr(now, 'yyyy-mm-dd');
-folderPath = fullfile(mfbFolderPath, 'Figures', 'Figure4', currentDate);
-if ~exist(folderPath, 'dir')
-    mkdir(folderPath);
-end
 
 fileName = ['PCA_low_bound'];
-fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+fullFilePathPDF = fullfile(savepath2, [fileName,'.pdf']);
 exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
+%%
+folder_names = {
+   '171212_16_19_37'; %1
+   '191018_13_39_41'; %2
+   '191018_13_56_55'; %3 inactive
+   '191018_14_30_00'; %4
+   '191018_14_11_33'; %5 ianctive
+   '191209_13_44_12'; %6
+   '191209_14_04_14'; %7 inactive
+   '191209_14_32_39'; %8
+   '191209_15_01_22'; %9
+   '191209_14_18_13'; %10
+   '191209_14_46_58'; %11
+   '200130_13_21_13 FunctAcq'; %12
+   '200130_13_36_14 FunctAcq'; %13
+   '200130_13_49_09 FunctAcq'; %14
+   '200130_14_15_24 FunctAcq'; %15
+   '200130_14_29_30 FunctAcq'; %16
+    };
 
+
+%% Calculate dimensionality for chosen subpopulation size (~10 min for each subpopulation size)
+
+savepath ="X:\MFB";
+
+for sub_i= [75 100 125 150 175]
+
+N_sub = sub_i
+N_file= length(folder_names);
+acquisition_rate=100;
+dimmax = nan(N_file,1);
+varexp = cell(N_file,1);
+
+for dataset_i = 1:N_file
+    % Load data
+    file=char(folder_names(dataset_i));
+
+    quickAnalysis;
+    zz = dff_rz;
+    zz(isnan(zz)) = 0;
+    if size(zz,1) >= N_sub
+        % Calculate dimensionality for grouped axons
+        [varexp{dataset_i},dimmax(dataset_i),~] = get_dim(zz,N_sub,N_sub,acquisition_rate);
+    end
+
+end
+
+save([char(savepath),'/Processed/dimensionality_N',num2str(N_sub)],'dimmax','varexp')
+end
+
+
+%% fig 4e
+
+valid_datasets = [1,2,4,6,8:16];
+Animal3_ids = [2,3,4,5];
+Animal4_ids = [6:11];
+Animal2_ids = [12:16];
+Animal1_ids = [1];
+
+c_Animal1 = [1,.4,.4];
+c_Animal2 = [.1,.5,.8];
+c_Animal3 = [1,.7,0];
+c_Animal4 = [.7,.1,.7];
+mice_colors = containers.Map({'Animal1','Animal2', 'Animal3', 'Animal4'}, ...
+                                 {c_Animal1, c_Animal2, c_Animal3, c_Animal4});
+
+N_sub = [75:25:175];
+slope = zeros(size(N_sub));
+sem=[];
+N_file= length(folder_names);
+for k = 1:length(N_sub)
+    % Recalculate max variance and dimensionality
+    varmax = nan(N_file,1);
+    dimmax = nan(N_file,1);
+    slope_values = nan(N_file,1);
+    for dataset_i = valid_datasets
+        load(fullfile(savepath, 'Processed/MFA subpopulation dim/', ['dimensionality_N',num2str(N_sub(k))]))
+        if ~isempty(varexp{dataset_i})
+            [varmax(dataset_i),dimmax(dataset_i)] = max(nanmean(varexp{dataset_i},1));
+        end
+        slope_values(dataset_i) = (varmax(dataset_i)'*varmax(dataset_i))\(varmax(dataset_i)'*dimmax(dataset_i));
+    end
+    slope_ind = N_sub(k)./slope_values;
+    ix = find(~isnan(varmax));
+    slope(k) = (varmax(ix)'*varmax(ix))\(varmax(ix)'*dimmax(ix));
+    sem(k) = nanstd(slope_ind) / sqrt(sum(~isnan(slope_ind)));
+end
+
+figure('Position', [30 20 500 250])
+bar(N_sub', N_sub./slope, 'FaceColor', [.6, .6, .6], 'EdgeColor', 'w', 'LineWidth', 1)
+hold on;
+errorbar(N_sub', N_sub./slope, sem, 'LineStyle', 'none', 'Color', 'k', 'LineWidth', 1);
+set(gca, 'FontSize', 13, 'Box', 'off')
+xlim([min(N_sub)-10, max(N_sub)+10])
+
+xlabel('Number of MFA')
+ylabel('MFA per dimension')
+
+fileName = ['subgroups_' char("errorbar") '_corr'];
+fullFilePathPDF = fullfile(savepath2, [fileName,'.pdf']);
+exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
+
+%% Effective dimensionality
+% Select
+folder_names = {
+   '171212_16_19_37';
+   '191018_13_39_41';
+   '191018_14_30_00';
+   '191209_13_44_12';
+   '191209_14_32_39';
+   '191209_15_01_22';
+   '191209_14_18_13';
+   '191209_14_46_58';
+   '200130_13_21_13 FunctAcq';
+   '200130_13_36_14 FunctAcq';
+   '200130_13_49_09 FunctAcq';
+   '200130_14_15_24 FunctAcq';
+   '200130_14_29_30 FunctAcq';
+};
+
+D_eff_all=[];
+
+for file_i  =1:length(folder_names)
+    file = char(folder_names(file_i));
+    quickAnalysis;
+    cov_matrix = cov(dff_rz','partialrows'); 
+    [eigenvectors, eigenvalues_matrix] = eig(cov_matrix);
+    eigenvalues = diag(eigenvalues_matrix);
+    lambda_hat_sq = (eigenvalues.^2) ./ (sum(eigenvalues).^2);
+    D_eff = 1 / sum(lambda_hat_sq);
+    disp(['Effective Dimensionality (D_eff): ', num2str(D_eff)]);
+    D_eff_all = [D_eff_all D_eff];
+end
 

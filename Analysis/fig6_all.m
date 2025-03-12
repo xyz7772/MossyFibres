@@ -1,14 +1,15 @@
-%% Select
+clear all; close all; clc
+%% all folders
 folder_names = {
    '171212_16_19_37';
    '191018_13_39_41';
-   %'191018_13_56_55'; % only run at the beginning
-   '191018_14_30_00'; % misaligned?
-   %'191018_14_11_33'; avg speed =0
+   %'191018_13_56_55'; % sessions are removed due to no beh
+   '191018_14_30_00';
+   %'191018_14_11_33';
    '191209_13_44_12';
-   %'191209_14_04_14'; %beh not good
+   %'191209_14_04_14';
    '191209_14_32_39';
-   '191209_15_01_22'; %L_state is all QW, but good wshiker  
+   '191209_15_01_22'; % No loco,state, but good whisker  
    '191209_14_18_13';
    '191209_14_46_58';
    '200130_13_21_13 FunctAcq';
@@ -18,6 +19,8 @@ folder_names = {
    '200130_14_15_24 FunctAcq';
    '200130_14_29_30 FunctAcq';
     };
+
+savepath = 'X:\MFB';
 %% get beta for each MF
 
 plot_decode_all_MF = 1;
@@ -72,10 +75,10 @@ if plot_decode_all_MF == 1
 
     end
 
-    folderPath = 'X:\MFB\MFB_AH_2023\Correlation_data\decode';
     fileName = 'Sorted_Beta.mat';
-    fullPath = fullfile(folderPath, fileName);
-    save(fullPath, 'beta_loco_all_files', 'beta_wsk_all_files', 'beta_state_all_files','beta_loco_sorted_indices_all', 'beta_wsk_sorted_indices_all' ,'beta_state_sorted_indices_all');
+    fullPath = fullfile([savepath '\decode'], fileName);
+    save(fullPath, 'beta_loco_all_files', 'beta_wsk_all_files', 'beta_state_all_files', ...
+        'beta_loco_sorted_indices_all', 'beta_wsk_sorted_indices_all' ,'beta_state_sorted_indices_all');
 end
 
 
@@ -98,7 +101,6 @@ for file_i = 1:length(folder_names)
     X= X(valid_t, :);
     L_state = L_state(valid_t);
 
-    % may need to write a loop, from best MF to top 100, 
     X_n_loco = X;
     X_n_wsk = X;
     X_n_state = X; 
@@ -130,7 +132,7 @@ for file_i = 1:length(folder_names)
 
 end
 
-save('X:\MFB\MFB_AH_2023\Correlation_data\decode\Best_MFs_num.mat', "num_MF_state","num_MF_loco","num_MF_wsk");
+save([savepath '\decode\Best_MFs_num.mat'], "num_MF_state","num_MF_loco","num_MF_wsk");
 
 
 %% plot traces
@@ -162,11 +164,10 @@ end
     average_pred = mean(Data, 2);
     
     subplot(6, 1, plot_i+1);
-    h2=plot(average_pred,'color',[173,210,157]/255,'LineWidth',1); % Predicted in blue
+    h2 = plot(average_pred,'color',[173,210,157]/255,'LineWidth',1);
     box('off')
     axis off;
 end
-
 
 xlabel('Time');
 ylabel('Corr')
@@ -180,14 +181,13 @@ hold on
 plot(ax, [x0, x0+1000], [y0, y0], 'k-', 'LineWidth', 3);
 text(ax, x0, y0 - diff(ylims) * 0.2, '10 s', 'FontSize', 13, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
 
-mfbFolderPath = 'X:\MFB';
 currentDate = datestr(now, 'yyyy-mm-dd');
-folderPath = fullfile(mfbFolderPath, 'Figures', 'Figure5', currentDate);
-if ~exist(folderPath, 'dir')
-    mkdir(folderPath);
+savepath2 = fullfile(savepath, 'Figures', 'Figure5', currentDate);
+if ~exist(savepath2, 'dir')
+    mkdir(savepath2);
 end
 fileName = [ 'Ridge_Loco_' folder_names{k} '_MF#'];
-fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+fullFilePathPDF = fullfile(savepath2, [fileName,'.pdf']);
 exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
 
@@ -236,7 +236,7 @@ plot(ax, [x0, x0+1000], [y0, y0], 'k-', 'LineWidth', 3);
 text(ax, x0, y0 - diff(ylims) * 0.2, '10 s', 'FontSize', 13, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
 
 fileName = [ 'Ridge_whisk_' folder_names{k} '_MF#'];
-fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+fullFilePathPDF = fullfile(savepath2, [fileName,'.pdf']);
 exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
 % Plot States
@@ -285,7 +285,7 @@ plot(ax, [x0, x0+1000], [y0, y0], 'k-', 'LineWidth', 3);
 text(ax, x0, y0 - diff(ylims) * 0.2, '10 s', 'FontSize', 13, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
 
 fileName = [ 'Ridge_state_' folder_names{k} '_MF#'];
-fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+fullFilePathPDF = fullfile(savepath2, [fileName,'.pdf']);
 exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
 %% fig. 6b
@@ -331,7 +331,7 @@ yticks([0 0.85])
 set(gca, 'LineWidth', 1, 'FontSize', 15, 'Box', 'off', 'TickDir', 'out')
 
 fileName = ['Decode_allMF#_loco'];
-fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+fullFilePathPDF = fullfile(savepath2, [fileName,'.pdf']);
 exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
 
@@ -371,7 +371,7 @@ drawnow;
 set(gca, 'LineWidth', 1, 'FontSize', 15, 'Box', 'off', 'TickDir', 'out')
 
 fileName = ['Decode_allMF#_whisk'];
-fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+fullFilePathPDF = fullfile(savepath2, [fileName,'.pdf']);
 exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
 
@@ -411,14 +411,14 @@ drawnow;
 set(gca, 'LineWidth', 1, 'FontSize', 15, 'Box', 'off', 'TickDir', 'out')
 
 fileName = ['Decode_allMF#_state'];
-fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+fullFilePathPDF = fullfile(savepath2, [fileName,'.pdf']);
 exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
 
 %% plot by first/optimal MF based on corr with behaviour
 
-load ('X:\MFB\MFB_AH_2023\Correlation_data\decode\Best_MFs_num.mat')
-load('X:\MFB\MFB_AH_2023\Correlation_data\decode\Sorted_Beta.mat')
+load ([savepath '\decode\Best_MFs_num.mat'])
+load([savepath '\decode\Sorted_Beta.mat'])
 
 Cvev_loco=[];
 Cvev_wsk=[];
@@ -446,9 +446,9 @@ for file_i = 1:length(folder_names)
     cvev_state_results = zeros(itr,1);
 
     for j = 1:itr
-       % 1. Best MFs in loco (Y)
-        N = num_MF_loco(file_i);
-        N=1
+       % 1. select MFs in loco (Y)
+        N = num_MF_loco(file_i); % or  N = 1
+
         selected_loco = randperm(size(X,2), N);
         
         beta_loco_i = beta_loco_sorted_indices_all{file_i};
@@ -464,11 +464,11 @@ for file_i = 1:length(folder_names)
         
         combined_rank_loco = 0.5 * beta_norm + 0.5 * corr_norm;
         [~, final_rank_loco] = sort(combined_rank_loco, 'ascend');
-        selected_loco_sorted = final_rank_loco(1:N); % 排序选取
+        selected_loco_sorted = final_rank_loco(1:N);
         
-        % 2. Best MFs in wsk (Y2)
-        N = num_MF_wsk(file_i);
-        N =1
+        % 2. select MFs in wsk (Y2)
+        N = num_MF_wsk(file_i); % or N =1
+
         selected_wsk = randperm(size(X,2), N);
         
         beta_wsk = beta_wsk_sorted_indices_all{file_i};
@@ -478,19 +478,16 @@ for file_i = 1:length(folder_names)
         [~, sorted_indices_corr_wsk] = sort(corr(X,Y2), 'descend');
         corr_wsk_rank = zeros(size(X, 2), 1);
         corr_wsk_rank(sorted_indices_corr_wsk) = 1:length(sorted_indices_corr_wsk);
-        
-        % 归一化排名
+
         beta_wsk_norm = (beta_wsk_array - min(beta_wsk_array)) / (max(beta_wsk_array) - min(beta_wsk_array));
         corr_wsk_norm = (corr_wsk_rank - min(corr_wsk_rank)) / (max(corr_wsk_rank) - min(corr_wsk_rank));
         
-        % 计算综合排名
         combined_rank_wsk = 0.5 * beta_wsk_norm + 0.5 * corr_wsk_norm;
         [~, final_rank_wsk] = sort(combined_rank_wsk, 'ascend');
-        selected_wsk_sorted = final_rank_wsk(1:N); % 排序选取
+        selected_wsk_sorted = final_rank_wsk(1:N);
         
-        % 3. Best MFs in states (Y3)
-        N = num_MF_state(file_i);
-        N=1
+        % 3. select MFs in states (Y3) 
+        N = num_MF_state(file_i); % or N =1
         if isnan(N)
             nancheck = 1;
         else
@@ -505,16 +502,13 @@ for file_i = 1:length(folder_names)
         [~, sorted_indices_corr_state] = sort(corr(X,Y3), 'descend');
         corr_state_rank = zeros(size(X, 2), 1);
         corr_state_rank(sorted_indices_corr_state) = 1:length(sorted_indices_corr_state);
-        
-        % 归一化排名
+
         beta_state_norm = (beta_state_array - min(beta_state_array)) / (max(beta_state_array) - min(beta_state_array));
         corr_state_norm = (corr_state_rank - min(corr_state_rank)) / (max(corr_state_rank) - min(corr_state_rank));
-        
-        % 计算综合排名
+
         combined_rank_state = 0.5 * beta_state_norm + 0.5 * corr_state_norm;
         [~, final_rank_state] = sort(combined_rank_state, 'ascend');
         
-        % 选择最优神经元
         if nancheck == 0
             selected_state_sorted = final_rank_state(1:N); 
         else 
@@ -567,7 +561,7 @@ for file_i = 1:length(folder_names)
             end
         end
 
-    % Average CVEV across all iterations
+    % Average CVEV
     meanCVEV_loco = mean(cvev_loco_results);
     meanCVEV_wsk = mean(cvev_wsk_results);
     if nancheck ~= 1
@@ -577,23 +571,24 @@ for file_i = 1:length(folder_names)
     end
 
     % Store or output the results
-    Cvev_loco{file_i} = meanCVEV_loco
-    Cvev_wsk{file_i} = meanCVEV_wsk
-    Cvev_state{file_i} = meanCVEV_state
+    Cvev_loco{file_i} = meanCVEV_loco;
+    Cvev_wsk{file_i} = meanCVEV_wsk;
+    Cvev_state{file_i} = meanCVEV_state;
 end
 
 
 %% Save the results
-save('X:\MFB\MFB_AH_2023\Correlation_data\decode\results_lasso_1_MF_sorted_beta.mat','Cvev_loco','Cvev_wsk','Cvev_state');
+save([savepath '\decode\results_lasso_MFs_sorted_beta.mat'],'Cvev_loco','Cvev_wsk','Cvev_state');
+%for the best one MF
+%save([savepath '\decode\results_lasso_1_MF_sorted_beta.mat'],'Cvev_loco','Cvev_wsk','Cvev_state');   
 
-%% plot for fig 6c
-
-load('X:\MFB\MFB_AH_2023\Correlation_data\decode\results_lasso_MFs_sorted_beta.mat');
+%% plot
+load([savepath '\decode\results_lasso_MFs_sorted_beta.mat']);
 result_wsk_lasso = cellfun(@(x) x(1), Cvev_wsk);
 result_loco_lasso = cellfun(@(x) x(1), Cvev_loco);
 result_state_lasso = cellfun(@(x) x(1), Cvev_state);
 
-load('X:\MFB\MFB_AH_2023\Correlation_data\decode\results_lasso_1_MF_sorted_beta.mat');
+load([savepath '\decode\results_lasso_1_MF_sorted_beta.mat']);
 result_wsk_lasso_1 = cellfun(@(x) x(1), Cvev_wsk);
 result_loco_lasso_1 = cellfun(@(x) x(1), Cvev_loco);
 result_state_lasso_1 = cellfun(@(x) x(1), Cvev_state);
@@ -618,11 +613,11 @@ ylim([0 1])
 [p_wsk, h_wsk] = signrank(result_wsk_lasso, result_wsk_lasso_1)
 
 
-fileName = ['Lasso_MF1vsall_whisk'];
-fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+fileName = 'Lasso_MF1vsall_whisk';
+fullFilePathPDF = fullfile(savepath2, [fileName,'.pdf']);
 exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 
-%Loco
+% Loco
 set(figure, 'Position', [400, 100, 350, 350]);
 hold on;
 
@@ -641,22 +636,13 @@ title('Loco');
 yticks([0 0.5 1])
 ylim([0 1])
 
-
-mfbFolderPath = 'X:\MFB';
-currentDate = datestr(now, 'yyyy-mm-dd');
-folderPath = fullfile(mfbFolderPath, 'Figures', 'Figure6', currentDate);
-if ~exist(folderPath, 'dir')
-    mkdir(folderPath);
-end
-
-fileName = ['Lasso_MF1vsall_loco'];
-fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+fileName = 'Lasso_MF1vsall_loco';
+fullFilePathPDF = fullfile(savepath2, [fileName,'.pdf']);
 exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
-
 [p_loco, h_loco] = signrank(result_loco_lasso, result_loco_lasso_1)
 
 
-% state
+% State
 set(figure, 'Position', [400, 100, 350, 350]);
 hold on
 
@@ -675,7 +661,7 @@ yticks([0 0.5 1])
 ylim([0 1])
 [p_state, h_state] = signrank(result_state_lasso, result_state_lasso_1)
 
-fileName = ['Lasso_MF1vsall_state'];
-fullFilePathPDF = fullfile(folderPath, [fileName,'.pdf']);
+fileName = 'Lasso_MF1vsall_state';
+fullFilePathPDF = fullfile(savepath2, [fileName,'.pdf']);
 exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
 

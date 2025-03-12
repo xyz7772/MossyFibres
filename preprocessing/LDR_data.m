@@ -16,7 +16,6 @@ folder_names = {
    '200130_13_21_13 FunctAcq';
    '200130_13_36_14 FunctAcq';
    '200130_13_49_09 FunctAcq';
-   %'200130_14_02_12 FunctAcq';
    '200130_14_15_24 FunctAcq';
    '200130_14_29_30 FunctAcq';
     };
@@ -47,8 +46,7 @@ end
 
 save(['X:\MFB\LDR\', file, '.mat'], 'ldr');
 end
-    cc0 = corr(dff0_r_smooth', 'rows', 'complete');
-    cc0(eye(length(cc0))==1)=nan;
+
 
 
 

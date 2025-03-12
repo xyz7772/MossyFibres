@@ -1,29 +1,5 @@
-%
-% This script is used to perform alignment analysis on neural activity signals and behavior (running state) 
-% in multiple data sessions.
-%
-% 1.Calculation of the correlation between neural activity and behavior
-% - Use the bootstrap cross - correlation method (bootstrap_cc) to calculate the cross - correlation between 
-% neural signals (ΔF/F) and the running state (L_state).
-% - Divide neurons into two groups: positively modulated (PM) and negatively modulated (NM) according to the 
-% set threshold (zth = 2), and sort them respectively.
-%
-% 2.Plotting of running - aligned tuning curves
-% - Determine the running onset time (run_onset) and extract data within a certain time window before and after the run.
-%
-% 3.Cross correlation analysis and visualization
-% - Calculate and display the zero - lag cross - correlation statistics for all neurons, as well as 
-% the relevant peak and trough times.
-%
-% 4.PM/NM run alignment
-% - For the positively modulated group and the negatively modulated
-% group according to the set threshold, we call the peak_latency.m to extract the peak latency 
-% and relevant indices of the cells in the PM and NM groups respectively during the first running state.
-%
-% Author: Yizhou
-% Date: 2024/1/21
-% Updated: 2025/3/4
-% -------------------------------------------------------------------------
+% This script performs alignment analysis on neural activity signals and behavior (running state) 
+% in multiple sessions.
 
 ColorCodes;
 
@@ -34,13 +10,13 @@ folder_names = {
     '191018_14_30_00';
     %'191018_14_11_33';
     '191209_13_44_12'; 
-    %'191209_14_04_14'; %only one running state
+    %'191209_14_04_14'; % only one running state
     '191209_14_32_39'; 
     '191209_15_01_22'; 
     '191209_14_18_13';
     '191209_14_46_58';
     '200130_13_21_13 FunctAcq';
-    %'200130_13_36_14 FunctAcq'; %only one running state
+    %'200130_13_36_14 FunctAcq'; % only one running state
     '200130_13_49_09 FunctAcq';
     %'200130_14_02_12 FunctAcq';
     '200130_14_15_24 FunctAcq';
@@ -60,7 +36,7 @@ for ij = 1:length(folder_names)
     prefix = [];
 
     if ~all(L_state == 0)
-        [cc_wL, zc_wL] = bootstrap_cc(dff_rz', L_state', 100, 40);
+        [cc_wL, zc_wL] = bootstrap_cc(dff_rz', L_state', 100, 200);
     else
         continue
     end
@@ -111,7 +87,7 @@ for ij = 1:length(folder_names)
         MF_no = length(MF_id);
         MF_id_sorted = flip(MF_id);
 
-        h = figure('Position', [400 48 400 800]); %hold on
+        h = figure('Position', [400 48 400 800]);
         [ha, pos] = tight_subplot(15, 1, [.005 .0002], [.025 .025], [.1 .05]);
 
         for cnt = 1:MF_no+1
@@ -169,23 +145,15 @@ for ij = 1:length(folder_names)
                 'TickLength', [.02 .02], 'XColor', 'none', 'YColor', 'none')
         end
 
-        currentScriptPath = mfilename('fullpath');
-        mfbIndex = strfind(currentScriptPath, 'MFB');
-        if ~isempty(mfbIndex)
-            mfbFolderPath = currentScriptPath(1:mfbIndex(1) + 2);
-        else
-            disp('Figures folder not found in the script path. Use current path instead');
-            mfbFolderPath = pwd;
-        end
         currentDate = datestr(now, 'yyyy-mm-dd');
-        folderPath = fullfile(mfbFolderPath, 'Figures/Supp.Figures', 'S4', currentDate);
-        if ~exist(folderPath, 'dir')
-            mkdir(folderPath);
+        savepath2 = fullfile(savepath, 'Figures/Supp.Figures', 'S4', currentDate);
+        if ~exist(savepath2, 'dir')
+            mkdir(savepath2);
         end
 
         % print
         fileName = [prefix 'runAligned_example' char(file)];
-        fullFilePathPDF = fullfile(folderPath, [fileName, '.pdf']);
+        fullFilePathPDF = fullfile(savepath2, [fileName, '.pdf']);
         exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
     end
 
@@ -231,11 +199,11 @@ for ij = 1:length(folder_names)
 
         % print
         fileName = [prefix 'runAligned_xcorr_example' char(file)];
-        fullFilePathPDF = fullfile(folderPath, [fileName, '.pdf']);
+        fullFilePathPDF = fullfile(savepath2, [fileName, '.pdf']);
         exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
     end
 
-    %% - for all MFs
+    % - for all MFs
     if plot_cross_corr_allMFs
         calculate = 1;
         if calculate
@@ -289,12 +257,12 @@ for ij = 1:length(folder_names)
 
         % print
         fileName = [prefix 'runAligned_xcorr_quant_example'];
-        fullFilePathPDF = fullfile(folderPath, [fileName, '.pdf']);
+        fullFilePathPDF = fullfile(savepath2, [fileName, '.pdf']);
         exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
     end
 end
 
-%% Supple 4.d
+%% Supple 4d
 ColorCodes
 
 folder_names = {
@@ -352,7 +320,7 @@ for file_i = 1:length(folder_names)
     end
     
     zth = 3;    
-    if strcmp(file, '191018_14_11_33')  % To balance NM/PM ratio
+    if strcmp(file, '191018_14_11_33')  % reduce bias
         zth = 2;
     end
     
@@ -373,7 +341,7 @@ for file_i = 1:length(folder_names)
     % get PM peak latency 
     x_pm = dff_rz(zids_PM, :);
     [peak_time, onset_time, rel_inc_pm, maxima_pm, minima_pm] = peak_latency(x_pm, tis_before, tis_after);
-    peak_time_pm = [peak_time_pm peak_time/dt];  % divided by dt
+    peak_time_pm = [peak_time_pm peak_time/dt];
     
     x1 = run1 - ((t_ext_bef)/1000 + 8.5) * 100;
     x2 = run1 + (t_ext_aft/1000 + 0.5) * 100;
@@ -403,7 +371,7 @@ for file_i = 1:length(folder_names)
     MI_wheel_r_all = [MI_wheel_r_all; MI_wheel_r_normalized];
     mean_wheel_r = nanmean(MI_wheel_r_all, 1);
     
-    % smooth and compute
+    % smooth
     x_pm_s = zeros(size(x_pm));
     for i = 1:size(x_pm, 1)
         x_pm_s(i, :) = fastsmooth(x_pm(i, :), 10, 3, 1);
@@ -492,22 +460,13 @@ for file_i = 1:length(folder_names)
     set(gca, 'LineWidth', 1, 'FontSize', 15, 'Box', 'off', 'TickDir', 'out', 'TickLength', [.01 .01]);
     
     % print
-    mfbFolderPath = 'X:\MFB';
-    currentDate = datestr(now, 'yyyy-mm-dd');
-    folderPath = fullfile(mfbFolderPath, 'Figures\Supp.Figures\S4\', currentDate);
-    if ~exist(folderPath, 'dir')
-        mkdir(folderPath);
-    end
-    
     fileName = ['Trace_PM_NM_average.png'];
-    fullFilePath = fullfile(folderPath, fileName);
+    fullFilePath = fullfile(savepath2, fileName);
     print(fullFilePath, '-dpng', '-r300');
     
     figure(Position = [100 200 200 200]);
-    
     data = [max_positions; min_positions];
     groups = [ones(size(max_positions)); 2 * ones(size(min_positions))];
-    
     hBoxPlot = boxplot(data, groups, 'Colors', ['r', 'b'], 'Symbol', '', 'Widths', 0.6);
     
     ylabel('Time (s)');
@@ -524,7 +483,7 @@ for file_i = 1:length(folder_names)
         set(hMed(j), 'LineWidth', 1);
     end
     
-    [p, h, stats] = ranksum(max_positions, min_positions); % Mann-Whitney U 
+    [p, h, stats] = ranksum(max_positions, min_positions);
     if p < 0.001
         num_stars = '***';
     elseif p < 0.01
@@ -542,7 +501,7 @@ for file_i = 1:length(folder_names)
     end
     
     fileName = ['Boxplot'];
-    fullFilePathPDF = fullfile(folderPath, [fileName, '.pdf']);
+    fullFilePathPDF = fullfile(savepath2, [fileName, '.pdf']);
     exportgraphics(gcf, fullFilePathPDF, 'ContentType', 'vector');
     
 end

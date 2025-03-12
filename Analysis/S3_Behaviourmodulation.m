@@ -1,19 +1,13 @@
-%This code is used to calculate the proportions of PM, NM, and NSM for each concatenated mouse, 
-%based on the bootstrapped correlation between activity and different behavior parameters.
-
-clear all;
-folderPath = 'X:\MFB\MFB_AH_2023\Correlation_data';
-
-
-mfbFolderPath = 'X:\MFB';
+clear all;close all; clc
+Initialize
+%%
+folder_names = {'Animal1', 'Animal2', 'Animal3', 'Animal4'};
+confile = dir(fullfile(data_home, 'concat_*.mat'));
 currentDate = datestr(now, 'yyyy-mm-dd');
-fp = fullfile(mfbFolderPath, 'Figures\Supp.Figures\S3\', currentDate);
-if ~exist(fp, 'dir')
-    mkdir(fp);
+savepath2 = fullfile(savepath, 'Figures\Supp.Figures\S3\', currentDate);
+if ~exist(savepath2, 'dir')
+    mkdir(savepath2);
 end
-
-% Files
-files = dir(fullfile(folderPath, 'concat_*.mat'));
 
 % Color maps
 redToWhite = [linspace(1, 1, 128)', linspace(0, 1, 128)', linspace(0, 1, 128)'];
@@ -71,7 +65,7 @@ for idx = 1:length(files)
     set(gca, 'LineWidth', 1, 'FontSize', 20, 'TickDir', 'out');
 
     fileName = ['Pairwise_corr_probability_' files(idx).name '.png'];
-    fullFilePath = fullfile(fp, fileName);
+    fullFilePath = fullfile(savepath2, fileName);
     print(fullFilePath, '-dpng', '-r300');
 
     figure('Position', [100, 100, 320, 270]);
@@ -92,18 +86,17 @@ for idx = 1:length(files)
     title({'Modulation (Loco)'}, 'fontsize', 20, 'fontweight', 'normal');
 
     fileName = ['modLoc_' files(idx).name '__pie.png'];
-    fullFilePath = fullfile(fp, fileName);
+    fullFilePath = fullfile(savepath2, fileName);
     print(fullFilePath, '-dpng', '-r300');
 end
 
 
-filePath = fullfile('X:\MFB\MFB_AH_2023\Correlation_data', 'CorrLoco.mat');
+filePath = fullfile([path_home '\preprocessing\Correlation data'], 'CorrLoco.mat');
 save(filePath, 'all_cc_MF_stat', 'all_cc_MF_run', 'cc_pw', 'cc_wl', 'zc_pw', 'zc_wl');
 
 %% pie fig. 2g
 
 figure('Position',[100,100,450,410])
-
 subplot(111); hold on
 axis off
 
@@ -142,13 +135,13 @@ set(ht, 'Position', newTitlePos);
 set(gca, 'Position', [0.13, 0.15, 0.6, 0.6]);
 mfbFolderPath = 'X:\MFB';
 currentDate = datestr(now, 'yyyy-mm-dd');
-fp = fullfile(mfbFolderPath, 'Figures\Supp.Figures\S3\', currentDate);
-if ~exist(fp, 'dir')
-    mkdir(fp);
+savepath2 = fullfile(mfbFolderPath, 'Figures\Supp.Figures\S3\', currentDate);
+if ~exist(savepath2, 'dir')
+    mkdir(savepath2);
 end
 
 fileName = ['modLoc_allMice__pie.png'];
-fullFilePath = fullfile(fp, fileName);
+fullFilePath = fullfile(savepath2, fileName);
 print(fullFilePath, '-dpng', '-r300');
 
 
@@ -171,7 +164,7 @@ xlim([-1,1]);
 set(gca, 'LineWidth', 1, 'FontSize', 15)
 
 fileName = ['Corr with AS.png'];
-fullFilePath = fullfile(fp, fileName);
+fullFilePath = fullfile(savepath2, fileName);
 print(fullFilePath, '-dpng', '-r300');
 
 h = figure('Position',[100,100,300,250]); hold on;
@@ -196,7 +189,7 @@ ylabel('# MFAs')
 set(gca, 'LineWidth', 1, 'FontSize', 15)
 
 fileName = ['Bootstrapped Corr_all'];
-fullFilePath = fullfile(fp, fileName);
+fullFilePath = fullfile(savepath2, fileName);
 print(fullFilePath, '-dpng', '-r300');
 
 %%
@@ -223,5 +216,5 @@ ylabel('Probability')
 set(gca, 'LineWidth', 1, 'FontSize', 20, 'TickDir', 'out','box','off')
 
 fileName = ['Pairwise corr_probability'];
-fullFilePath = fullfile(fp, fileName);
+fullFilePath = fullfile(savepath2, fileName);
 print(fullFilePath, '-dpng', '-r300');
